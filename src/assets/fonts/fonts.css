@@ -1,0 +1,20 @@
+@font-face {
+  font-family: "material-icons";
+  font-style: normal;
+  font-weight: 400;
+  src: url("MaterialIcons-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "inter";
+  font-style: normal;
+  font-weight: 400;
+  src: url("Inter_18pt-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "inter";
+  font-style: normal;
+  font-weight: 700;
+  src: url("Inter_18pt-Bold.ttf") format("truetype");
+}
