@@ -42,6 +42,42 @@ function App() {
       }),
     }); */
   };
+  const handleRegistrateUser = () => {
+    fetch("https://www.d-skills.ru/87_stop_smoking/php/signup.php", {
+      method: "POST",
+      body: JSON.stringify({
+        login: user.login,
+        password: user.password,
+      }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+      },
+    })
+      .then((response) => response.json())
+      .then((json) => console.log(json));
+  };
+
+  const handleAuthenticateUser = () => {
+    fetch("https://www.d-skills.ru/87_stop_smoking/php/signin.php", {
+      method: "POST",
+      body: JSON.stringify({
+        login: user.login,
+        password: user.password,
+      }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+      },
+    })
+      .then((response) => response.json())
+      .then((json) => console.log(json));
+  };
+
+  const handleCheckUserAuthentication = () => {
+    fetch("https://www.d-skills.ru/87_stop_smoking/php/checkauth.php")
+      .then((response) => response.json())
+      .then((json) => console.log(json));
+  };
+
   return (
     <div className="app">
       <span className="material-icons">smoke_free</span> Stop Smoking
@@ -50,6 +86,7 @@ function App() {
         <button onClick={() => setScreen("authorization")}>Авт</button>
         <button onClick={() => setScreen("main")}>Осн</button>
         <button onClick={resetUser}>Reset</button>
+        <button onClick={handleCheckUserAuthentication}>CheckAuth</button>
       </div>
       {screen === "authorization" && (
         <>
@@ -86,7 +123,9 @@ function App() {
             </div>
             <div>
               <button type="button">Отмена</button>
-              <button>Войти</button>
+              <button type="button" onClick={handleAuthenticateUser}>
+                Войти
+              </button>
               <button
                 type="button"
                 onClick={() => {
@@ -157,7 +196,9 @@ function App() {
             </div>
             <div>
               <button type="button">Отмена</button>
-              <button>Регистрация</button>
+              <button type="button" onClick={handleRegistrateUser}>
+                Регистрация
+              </button>
             </div>
           </form>
         </>
