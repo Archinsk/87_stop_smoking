@@ -4,3 +4,24 @@
 .material-icons {
   font-family: material-icons;
 }
+
+.d-flex {
+  display: flex;
+}
+
+.circle {
+  width: 1rem;
+  height: 1rem;
+  background-color: yellow;
+  border-radius: 50%;
+  border: 1px solid orange;
+}
+
+.circle.smoked {
+  background-color: red;
+}
+
+.hole {
+  width: 0.5rem;
+  height: 1rem;
+}

@@ -9,6 +9,7 @@ function App() {
     passwordConfirmation: "",
     errorType: "",
     errorText: "",
+    weight: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isAuthUser, setIsAuthUser] = useState(false);
@@ -28,6 +29,7 @@ function App() {
       passwordConfirmation: "",
       errorType: "",
       errorText: "",
+      weight: "",
     });
   };
   const handleSubmitForm = (formData) => {
@@ -78,6 +80,40 @@ function App() {
       .then((json) => console.log(json));
   };
 
+  const handleGetUserData = () => {
+    fetch("https://www.d-skills.ru/87_stop_smoking/php/getsmoking.php")
+      .then((response) => response.json())
+      .then((json) => console.log(json));
+  };
+
+  const handleSetSmoking = (smokingType) => {
+    fetch("https://www.d-skills.ru/87_stop_smoking/php/setsmoking.php", {
+      method: "POST",
+      body: JSON.stringify({
+        smokingType: smokingType,
+      }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+      },
+    })
+      .then((response) => response.json())
+      .then((json) => console.log(json));
+  };
+
+  const handleSetUserWeight = () => {
+    fetch("https://www.d-skills.ru/87_stop_smoking/php/setweight.php", {
+      method: "POST",
+      body: JSON.stringify({
+        weight: user.weight,
+      }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+      },
+    })
+      .then((response) => response.json())
+      .then((json) => console.log(json));
+  };
+
   return (
     <div className="app">
       <span className="material-icons">smoke_free</span> Stop Smoking
@@ -87,6 +123,7 @@ function App() {
         <button onClick={() => setScreen("main")}>Осн</button>
         <button onClick={resetUser}>Reset</button>
         <button onClick={handleCheckUserAuthentication}>CheckAuth</button>
+        <button onClick={handleGetUserData}>GetUserData</button>
       </div>
       {screen === "authorization" && (
         <>
@@ -221,6 +258,74 @@ function App() {
             ранее затрачиваемых на курение
           </div>
           <div className="alert">Вы не курите ... дней</div>
+          <h2>Форма регистрации веса</h2>
+          <form>
+            <div className="form-group">
+              <label htmlFor="userWeight" className="form-label">
+                Вес
+              </label>
+              <input
+                className="form-control"
+                id="userWeight"
+                value={user.weight}
+                onChange={(e) => setUser({ ...user, weight: e.target.value })}
+              />
+              <div id="registrationLoginHelp" className="form-text">
+                Help text
+              </div>
+            </div>
+            <div>
+              <button type="button">Отмена</button>
+              <button type="button" onClick={handleSetUserWeight}>
+                Отправить
+              </button>
+            </div>
+          </form>
+          <h2>Регистр курения</h2>
+          <button
+            type="button"
+            onClick={() => {
+              handleSetSmoking("cigarette");
+            }}
+          >
+            Cigarette
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              handleSetSmoking("stick");
+            }}
+          >
+            Stick
+          </button>
+          <div className="d-flex">
+            <div className="circle smoked"></div>
+            <div className="circle smoked"></div>
+            <div className="circle smoked"></div>
+            <div className="circle"></div>
+            <div className="circle"></div>
+            <div className="circle"></div>
+            <div className="circle"></div>
+          </div>
+          <div className="d-flex">
+            <div className="hole"></div>
+            <div className="circle"></div>
+            <div className="circle"></div>
+            <div className="circle"></div>
+            <div className="circle"></div>
+            <div className="circle"></div>
+            <div className="circle"></div>
+            <div className="hole"></div>
+          </div>
+          <div className="d-flex">
+            <div className="circle"></div>
+            <div className="circle"></div>
+            <div className="circle"></div>
+            <div className="circle"></div>
+            <div className="circle"></div>
+            <div className="circle"></div>
+            <div className="circle"></div>
+          </div>
         </>
       )}
     </div>
