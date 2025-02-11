@@ -34,7 +34,7 @@ if ( isset($request) && $_SESSION['auth_user_id']) {
 //Формирование ответа
 $weightResponse = array(
   'id' => $id,
-  'weight' => $request['task'],
+  'weight' => $request['weight'],
   'timestamp' => $time
 );
 //$response = array(

@@ -19,7 +19,8 @@ if ($_SESSION['auth_user_id']) {
   $error = array(
 	'id' => '10',
 	'type' => 'auth',
-	'errorText' => 'Текущий пользователь не авторизован!'
+	'errorText' => 'Текущий пользователь не авторизован!',
+	'userid' => $userid
   );
   $response = array(
 	'error' => $error
