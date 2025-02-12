@@ -2,7 +2,7 @@ import { useState } from "react";
 import "./App.css";
 
 function App() {
-  const [screen, setScreen] = useState("registration");
+  const [screen, setScreen] = useState("main");
   const [user, setUser] = useState({
     login: "",
     password: "",
@@ -11,7 +11,10 @@ function App() {
     errorText: "",
     weight: "",
   });
+  const [smokings, setSmokings] = useState([]);
+  const [weights, setweights] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isNotification, setIsNotification] = useState(false);
   const [isAuthUser, setIsAuthUser] = useState(false);
 
   const validateAuthForm = () => {
@@ -81,9 +84,13 @@ function App() {
   };
 
   const handleGetUserData = () => {
-    fetch("https://www.d-skills.ru/87_stop_smoking/php/getsmoking.php")
+    fetch("https://www.d-skills.ru/87_stop_smoking/php/getuser.php?userid=1")
       .then((response) => response.json())
-      .then((json) => console.log(json));
+      .then((json) => {
+        console.log(json);
+        setSmokings(json.smokings);
+        setweights(json.weights);
+      });
   };
 
   const handleSetSmoking = (smokingType) => {
@@ -97,7 +104,10 @@ function App() {
       },
     })
       .then((response) => response.json())
-      .then((json) => console.log(json));
+      .then((json) => {
+        console.log(json);
+        handleGetUserData();
+      });
   };
 
   const handleSetUserWeight = () => {
@@ -242,7 +252,7 @@ function App() {
       )}
       {screen === "main" && (
         <>
-          <div className="alert">
+          {/* <div className="alert">
             Для достижения результата начните фиксировать каждую выкуриваемую
             сигарету и стик в момент начала курения. Рекомендации появятся после
             трех дней ведения сттистики
@@ -257,7 +267,7 @@ function App() {
             Съэкономлено ... рублей на покупке сигарет/стиков, ... минут жизни,
             ранее затрачиваемых на курение
           </div>
-          <div className="alert">Вы не курите ... дней</div>
+          <div className="alert">Вы не курите ... дней</div> */}
           <h2>Форма регистрации веса</h2>
           <form>
             <div className="form-group">
@@ -326,6 +336,52 @@ function App() {
             <div className="circle"></div>
             <div className="circle"></div>
           </div>
+          {/* a1TimeStampGlobal() {
+      return new Date(this.timeStamp);
+    },
+    a2timeZoneOffsetMs() {
+      return new Date(this.timeStamp).getTimezoneOffset() * 60000;
+    },
+    a3timeStampWithTimezoneOffset: function () {
+      return new Date(this.timeStamp - this.timeZoneOffsetMs);
+    },
+    a4startOfDayGMTinMs() {
+      return new Date(this.startOfDayGMTinMs);
+    },
+    a5startOfDayLocalinMs() {
+      return new Date(this.startOfDayLocalinMs);
+    },
+    a6finishOfDayLocalinMs() {
+      return new Date(this.finishOfDayLocalinMs);
+    }, */}
+          <h3>Веса</h3>
+          {weights.length && (
+            <ul>
+              {weights.map((item) => {
+                return (
+                  <li key={item.id}>
+                    {item.id}.{item.weight} - {item.timestamp}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          <h3>Курение</h3>
+          {smokings.length && (
+            <ul>
+              {smokings.map((item) => {
+                return (
+                  <li key={item.id}>
+                    {item.id}.{item.type} - {item.timestamp} -{" "}
+                    {String(new Date(item.timestamp))} -
+                    {/* {new Date(item.timestamp * 1000).getTimezoneOffset() *
+                      60000}{" "}
+                    - */}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </>
       )}
     </div>
