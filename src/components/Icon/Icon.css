@@ -1,0 +1,49 @@
+@font-face {
+  font-family: "material-icons";
+  font-style: normal;
+  font-weight: 400;
+  src: url("MaterialIcons-Regular.ttf") format("truetype");
+}
+
+.icon {
+  font-family: "material-icons";
+  font-weight: normal;
+  font-style: normal;
+  display: inline-block;
+  vertical-align: calc(-0.125em + (1em - 1rem) / 20);
+}
+
+/*@mixin btn-square-icon {
+  .icon {
+    font-size: 1.5em;
+    line-height: 1em;
+  }
+}
+
+.btn-square {
+  @include btn-square-icon;
+}
+
+@media (min-width: 576px) {
+  .btn-square-sm {
+    @include btn-square-icon;
+  }
+}
+
+@media (min-width: 768px) {
+  .btn-square-md {
+    @include btn-square-icon;
+  }
+}
+
+@media (min-width: 992px) {
+  .btn-square-lg {
+    @include btn-square-icon;
+  }
+}
+
+@media (min-width: 1200px) {
+  .btn-square-xl {
+    @include btn-square-icon;
+  }
+}*/

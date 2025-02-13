@@ -35,7 +35,10 @@ if ( isset($request) && $_SESSION['auth_user_id']) {
 $smokingResponse = array(
   'id' => $id,
   'type' => $request['smokingType'],
-  'timestamp' => $time
+  'timestamp' => $time,
+  'server' => $_SERVER,
+  'headers' => apache_request_headers(),
+  'body' => file_get_contents('php://input')
 );
 //$response = array(
 //  'task' => $weightResponse

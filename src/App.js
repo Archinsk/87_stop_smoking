@@ -1,5 +1,7 @@
 import { useState } from "react";
 import "./App.css";
+import Icon from "./components/Icon/Icon";
+import Button from "./components/Button/Button";
 
 function App() {
   const [screen, setScreen] = useState("main");
@@ -16,6 +18,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [isNotification, setIsNotification] = useState(false);
   const [isAuthUser, setIsAuthUser] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   const validateAuthForm = () => {
     console.log("Валидация авторизации");
@@ -127,14 +130,17 @@ function App() {
   return (
     <div className="app">
       <span className="material-icons">smoke_free</span> Stop Smoking
-      <div>
-        <button onClick={() => setScreen("registration")}>Рег</button>
-        <button onClick={() => setScreen("authorization")}>Авт</button>
-        <button onClick={() => setScreen("main")}>Осн</button>
-        <button onClick={resetUser}>Reset</button>
-        <button onClick={handleCheckUserAuthentication}>CheckAuth</button>
-        <button onClick={handleGetUserData}>GetUserData</button>
-      </div>
+      <Button icon="settings" onClick={() => setShowSettings(!showSettings)} />
+      {showSettings && (
+        <div>
+          <Button onClick={() => setScreen("registration")}>Рег</Button>
+          <Button onClick={() => setScreen("authorization")}>Авт</Button>
+          <Button onClick={() => setScreen("main")}>Осн</Button>
+          <Button onClick={resetUser}>Reset</Button>
+          <Button onClick={handleCheckUserAuthentication}>CheckAuth</Button>
+          <Button onClick={handleGetUserData}>GetUserData</Button>
+        </div>
+      )}
       {screen === "authorization" && (
         <>
           <h2>Форма Авторизации</h2>
@@ -169,18 +175,18 @@ function App() {
               </div>
             </div>
             <div>
-              <button type="button">Отмена</button>
-              <button type="button" onClick={handleAuthenticateUser}>
+              <Button type="button">Отмена</Button>
+              <Button type="button" onClick={handleAuthenticateUser}>
                 Войти
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
                 onClick={() => {
                   setScreen("registration");
                 }}
               >
                 Зарегистрироваться
-              </button>
+              </Button>
             </div>
           </form>
         </>
@@ -242,10 +248,10 @@ function App() {
               </div>
             </div>
             <div>
-              <button type="button">Отмена</button>
-              <button type="button" onClick={handleRegistrateUser}>
+              <Button type="button">Отмена</Button>
+              <Button type="button" onClick={handleRegistrateUser}>
                 Регистрация
-              </button>
+              </Button>
             </div>
           </form>
         </>
@@ -285,29 +291,29 @@ function App() {
               </div>
             </div>
             <div>
-              <button type="button">Отмена</button>
-              <button type="button" onClick={handleSetUserWeight}>
+              <Button type="button">Отмена</Button>
+              <Button type="button" onClick={handleSetUserWeight}>
                 Отправить
-              </button>
+              </Button>
             </div>
           </form>
           <h2>Регистр курения</h2>
-          <button
+          <Button
             type="button"
             onClick={() => {
               handleSetSmoking("cigarette");
             }}
           >
             Cigarette
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             onClick={() => {
               handleSetSmoking("stick");
             }}
           >
             Stick
-          </button>
+          </Button>
           <div className="d-flex">
             <div className="circle smoked"></div>
             <div className="circle smoked"></div>

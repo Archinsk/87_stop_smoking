@@ -1,0 +1,74 @@
+.button {
+  /* base */
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  display: inline-block;
+  /* font */
+  font-family: var(--button-font-family);
+  font-size: var(--button-font-size, var(--font-size, 1rem));
+  line-height: var(--button-line-height, var(--line-height, 1.5));
+  font-weight: var(--button-font-weight);
+  text-decoration: none;
+  text-align: center;
+  vertical-align: middle;
+  /* colors */
+  background-color: var(
+    --button-background-color,
+    var(--accent-color, hsl(0, 0%, 95%))
+  );
+  color: var(--button-color);
+  border-color: var(
+    --button-border-color,
+    var(--border-color, hsl(0, 0%, 50%))
+  );
+  /* form */
+  padding: calc(
+      var(--button-padding-y, var(--padding, 0.375em)) -
+        var(--button-border-width, var(--border-width, 0.0625rem))
+    )
+    calc(
+      (var(--button-padding-y, var(--padding, 0.375em)) * 2) -
+        var(--button-border-width, var(--border-width, 0.0625rem))
+    );
+  border-radius: var(--button-border-radius, var(--border-radius));
+  border-width: var(--button-border-width, var(--border-width, 0.0625rem));
+  border-style: var(--button-border-style, var(--border-style, solid));
+
+  &:hover {
+    background-color: var(--button-hover-background-color, hsl(0, 0%, 85%));
+  }
+
+  &:active {
+    background-color: var(--button-active-background-color, hsl(0, 0%, 75%));
+  }
+}
+
+.button-square {
+  padding-left: calc(
+    var(--button-padding-y, var(--padding, 0.375em)) -
+      var(--button-border-width, var(--border-width, 0.0625rem))
+  );
+  padding-right: calc(
+    var(--button-padding-y, var(--padding, 0.375em)) -
+      var(--button-border-width, var(--border-width, 0.0625rem))
+  );
+  width: calc(
+    var(--button-font-size, var(--font-size, 1em)) *
+      var(--button-line-height, var(--line-height, 1.5)) +
+      var(--button-padding-y, var(--padding, 0.375em)) * 2
+  );
+}
+
+.button .icon + * {
+  margin-left: 0.5em;
+}
+
+.button-small {
+  font-size: calc(var(--button-font-size, var(--font-size, 1rem)) * 28 / 36);
+}
+
+.button-large {
+  font-size: calc(var(--button-font-size, var(--font-size, 1rem)) * 44 / 36);
+}

@@ -23,7 +23,7 @@ foreach( $smokingsDB as $smokingItem) {
   $smoking = array(
 	  'id' => $smokingItem->id,
 	  'type' => $smokingItem->type,
-	  'timestamp' => $smokingItem->timestamp,
+	  'timestamp' => $smokingItem->timestamp * 1000,
 	);
 	array_push($smokings, $smoking);
 };
@@ -32,7 +32,7 @@ foreach( $weightsDB as $weightItem) {
   $smoking = array(
 	  'id' => $weightItem->id,
 	  'weight' => $weightItem->weight,
-	  'timestamp' => $weightItem->timestamp,
+	  'timestamp' => $weightItem->timestamp * 1000,
 	);
 	array_push($weights, $smoking);
 };
