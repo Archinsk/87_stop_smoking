@@ -1,4 +1,11 @@
-.app {
+:root {
+  --cigarette-diameter: 8rem;
+}
+
+@media (width > 1100px) {
+  .cigarette-box {
+    --cigarette-diameter: 2rem;
+  }
 }
 
 .material-icons {
@@ -10,8 +17,8 @@
 }
 
 .circle {
-  width: 1rem;
-  height: 1rem;
+  width: var(--cigarette-diameter);
+  height: var(--cigarette-diameter);
   background-color: yellow;
   border-radius: 50%;
   border: 1px solid orange;
@@ -22,6 +29,6 @@
 }
 
 .hole {
-  width: 0.5rem;
-  height: 1rem;
+  width: calc(var(--cigarette-diameter) / 2);
+  height: var(--cigarette-diameter);
 }

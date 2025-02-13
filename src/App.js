@@ -19,6 +19,7 @@ function App() {
   const [isNotification, setIsNotification] = useState(false);
   const [isAuthUser, setIsAuthUser] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [geoPosition, setGeoPosition] = useState(null);
 
   const validateAuthForm = () => {
     console.log("Валидация авторизации");
@@ -127,6 +128,19 @@ function App() {
       .then((json) => console.log(json));
   };
 
+  const handleGetGeoPosition = () => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition((position) => {
+        setGeoPosition({
+          lat: position.coords.latitude,
+          long: position.coords.longitude,
+        });
+      });
+    } else {
+      alert("Геопозиция недоступна");
+    }
+  };
+
   return (
     <div className="app">
       <span className="material-icons">smoke_free</span> Stop Smoking
@@ -139,6 +153,13 @@ function App() {
           <Button onClick={resetUser}>Reset</Button>
           <Button onClick={handleCheckUserAuthentication}>CheckAuth</Button>
           <Button onClick={handleGetUserData}>GetUserData</Button>
+          <Button onClick={handleGetGeoPosition}>GetGeo</Button>
+        </div>
+      )}
+      {geoPosition && (
+        <div>
+          <div>latitude : {geoPosition.lat}</div>
+          <div>longitude : {geoPosition.long}</div>
         </div>
       )}
       {screen === "authorization" && (
@@ -314,33 +335,35 @@ function App() {
           >
             Stick
           </Button>
-          <div className="d-flex">
-            <div className="circle smoked"></div>
-            <div className="circle smoked"></div>
-            <div className="circle smoked"></div>
-            <div className="circle"></div>
-            <div className="circle"></div>
-            <div className="circle"></div>
-            <div className="circle"></div>
-          </div>
-          <div className="d-flex">
-            <div className="hole"></div>
-            <div className="circle"></div>
-            <div className="circle"></div>
-            <div className="circle"></div>
-            <div className="circle"></div>
-            <div className="circle"></div>
-            <div className="circle"></div>
-            <div className="hole"></div>
-          </div>
-          <div className="d-flex">
-            <div className="circle"></div>
-            <div className="circle"></div>
-            <div className="circle"></div>
-            <div className="circle"></div>
-            <div className="circle"></div>
-            <div className="circle"></div>
-            <div className="circle"></div>
+          <div className="cigarette-box">
+            <div className="d-flex">
+              <div className="circle smoked"></div>
+              <div className="circle smoked"></div>
+              <div className="circle smoked"></div>
+              <div className="circle"></div>
+              <div className="circle"></div>
+              <div className="circle"></div>
+              <div className="circle"></div>
+            </div>
+            <div className="d-flex">
+              <div className="hole"></div>
+              <div className="circle"></div>
+              <div className="circle"></div>
+              <div className="circle"></div>
+              <div className="circle"></div>
+              <div className="circle"></div>
+              <div className="circle"></div>
+              <div className="hole"></div>
+            </div>
+            <div className="d-flex">
+              <div className="circle"></div>
+              <div className="circle"></div>
+              <div className="circle"></div>
+              <div className="circle"></div>
+              <div className="circle"></div>
+              <div className="circle"></div>
+              <div className="circle"></div>
+            </div>
           </div>
           {/* a1TimeStampGlobal() {
       return new Date(this.timeStamp);
