@@ -14,11 +14,19 @@ if ( isset($request) ) {
 	  $user = array(
 	    'id' => $userDB->id,
 	    'name' => $userDB->login,
+		'server' => $_SERVER,
+	    'headers' => apache_request_headers(),
+	    'body' => file_get_contents('php://input')
 	  );
 	  $response = array(
 	    'user' => $user
 	  );
 	  $_SESSION['auth_user_id'] = $userDB->id;
+	  //Запись времени последнего входа и временной зоны
+	  $updatedUser = R::load('users', $userDB->id);
+	  $updatedUser->last_login_date = $_SERVER['REQUEST_TIME'];
+      $updatedUser->time_zone_offset = $request['timeZoneOffset'];
+      R::store($updatedUser); 
     } else {
 	  $error = array(
 	    'id' => '2',

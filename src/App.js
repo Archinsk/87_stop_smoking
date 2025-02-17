@@ -15,6 +15,7 @@ function App() {
   });
   const [smokings, setSmokings] = useState([]);
   const [weights, setweights] = useState([]);
+  const [checkUserAuth, setCheckUserAuth] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isNotification, setIsNotification] = useState(false);
   const [isAuthUser, setIsAuthUser] = useState(false);
@@ -72,19 +73,34 @@ function App() {
       body: JSON.stringify({
         login: user.login,
         password: user.password,
+        timeZoneOffset: new Date().getTimezoneOffset(),
       }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
       },
     })
       .then((response) => response.json())
-      .then((json) => console.log(json));
+      .then((json) => {
+        console.log(json);
+        setScreen("main");
+        handleGetUserData();
+      });
   };
 
   const handleCheckUserAuthentication = () => {
     fetch("https://www.d-skills.ru/87_stop_smoking/php/checkauth.php")
       .then((response) => response.json())
-      .then((json) => console.log(json));
+      .then((json) => {
+        console.log(json);
+        if (json.user) {
+          setScreen("main");
+          handleGetUserData();
+        }
+        if (json.error) {
+          setScreen("authorization");
+        }
+        setCheckUserAuth(true);
+      });
   };
 
   const handleGetUserData = () => {
@@ -141,6 +157,16 @@ function App() {
     }
   };
 
+  const handleLogOut = () => {
+    fetch("https://www.d-skills.ru/87_stop_smoking/php/signout.php")
+      .then((response) => response.json())
+      .then((json) => console.log(json));
+  };
+
+  if (!checkUserAuth) {
+    handleCheckUserAuthentication();
+  }
+
   return (
     <div className="app">
       <span className="material-icons">smoke_free</span> Stop Smoking
@@ -154,6 +180,7 @@ function App() {
           <Button onClick={handleCheckUserAuthentication}>CheckAuth</Button>
           <Button onClick={handleGetUserData}>GetUserData</Button>
           <Button onClick={handleGetGeoPosition}>GetGeo</Button>
+          <Button onClick={handleLogOut}>LogOut</Button>
         </div>
       )}
       {geoPosition && (
