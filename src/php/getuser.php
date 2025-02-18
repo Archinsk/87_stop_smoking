@@ -36,10 +36,13 @@ $smokingsThreeDays = R::find('smokings', 'userid = ? AND TIMESTAMP > ? ORDER BY 
 $userDataByDays = array();
 for ($i = $days; $i >= 0; $i--) {
 	$oneDaySmokingsDB = array();
+	$oneDayWeightsDB = array();
 	if ($i != 0) {
 	  $oneDaySmokingsDB = R::find('smokings', 'userid = ? AND TIMESTAMP >= ? AND TIMESTAMP < ? ORDER BY timestamp DESC', array($userId, $startOfToday - $i * 86400 + $timeZoneOffset * 60, $startOfToday - ($i - 1) * 86400 + $timeZoneOffset * 60));
+	  $oneDayWeightsDB = R::find('weights', 'userid = ? AND TIMESTAMP >= ? AND TIMESTAMP < ? ORDER BY timestamp DESC', array($userId, $startOfToday - $i * 86400 + $timeZoneOffset * 60, $startOfToday - ($i - 1) * 86400 + $timeZoneOffset * 60));
 	} else {
 	  $oneDaySmokingsDB = R::find('smokings', 'userid = ? AND TIMESTAMP >= ? ORDER BY timestamp DESC', array($userId, $startOfToday - $i * 86400 + $timeZoneOffset * 60));
+	  $oneDayWeightsDB = R::find('weights', 'userid = ? AND TIMESTAMP >= ? ORDER BY timestamp DESC', array($userId, $startOfToday - $i * 86400 + $timeZoneOffset * 60));
 	};
 	$oneDaySmokings = array();
 	foreach( $oneDaySmokingsDB as $smokingItem) {
@@ -50,9 +53,19 @@ for ($i = $days; $i >= 0; $i--) {
 	  );
 	  array_push($oneDaySmokings, $smoking);
     };
+	$oneDayWeights = array();
+	foreach( $oneDayWeightsDB as $weightItem) {
+      $weight = array(
+	    'id' => $weightItem->id,
+	    'type' => $weightItem->type,
+	    'timestamp' => $weightItem->timestamp * 1000,
+	  );
+	  array_push($oneDayWeights, $weight);
+    };
 	$oneDay = array(
 	  'dayStartTimestamp' => ($startOfToday - $i * 86400) * 1000,
 	  'smokings' => $oneDaySmokings,
+	  'weights' => $oneDayWeights,
 	);
 	array_push($userDataByDays, $oneDay);
 };

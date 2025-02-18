@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import "./App.css";
-import Icon from "./components/Icon/Icon";
 import Button from "./components/Button/Button";
+import { Chart } from "chart.js";
 
 function App() {
   const [screen, setScreen] = useState("main");
@@ -20,8 +20,16 @@ function App() {
   const [isNotification, setIsNotification] = useState(false);
   const [isAuthUser, setIsAuthUser] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [geoPosition, setGeoPosition] = useState(null);
+  const [geoPosition, setGeoPosition] = useState("geo");
   const [userDataByDays, setUserDataByDays] = useState(null);
+  const [chart, setChart] = useState(false);
+
+  const todaySmokings = useMemo(() => {
+    if (userDataByDays) {
+      return userDataByDays[userDataByDays.length - 1].smokings;
+    }
+    return;
+  }, [userDataByDays]);
 
   const validateAuthForm = () => {
     console.log("Валидация авторизации");
@@ -118,11 +126,18 @@ function App() {
   };
 
   const handleSetSmoking = (smokingType) => {
+    let requestBody = {
+      smokingType: smokingType,
+    };
+    const geo = getGeoPosition();
+    if (geo) {
+      requestBody.latitude = geo.latitude;
+      requestBody.longtitude = geo.longtitude;
+    }
+
     fetch("https://www.d-skills.ru/87_stop_smoking/php/setsmoking.php", {
       method: "POST",
-      body: JSON.stringify({
-        smokingType: smokingType,
-      }),
+      body: JSON.stringify(requestBody),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
       },
@@ -148,17 +163,29 @@ function App() {
       .then((json) => console.log(json));
   };
 
+  const getGeoPosition = () => {
+    let geo;
+    navigator.geolocation.getCurrentPosition((position) => {
+      geo = {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      };
+    });
+    return geo;
+  };
+
   const handleGetGeoPosition = () => {
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition((position) => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
         setGeoPosition({
-          lat: position.coords.latitude,
-          long: position.coords.longitude,
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
         });
-      });
-    } else {
-      alert("Геопозиция недоступна");
-    }
+      },
+      () => {
+        setGeoPosition("qwe");
+      }
+    );
   };
 
   const handleLogOut = () => {
@@ -170,6 +197,37 @@ function App() {
   if (!checkUserAuth) {
     handleCheckUserAuthentication();
   }
+  const barChart = {
+    config: {
+      type: "bar",
+      data: {
+        labels: [
+          "Chrome",
+          "Safari",
+          "Samsung Internet",
+          "Opera",
+          "UC Browser",
+          "Android",
+        ],
+        datasets: [
+          {
+            data: [65, 25, 5, 3, 1, 1],
+            backgroundColor: [
+              "#6090C0",
+              "#6060C0",
+              "#9060C0",
+              "#C06060",
+              "#C08F60",
+              "#C0BE60",
+            ],
+          },
+        ],
+      },
+    },
+  };
+  const createChart = async () => {
+    new Chart(document.getElementById("chart01"), barChart.config);
+  };
 
   return (
     <div className="app">
@@ -185,6 +243,7 @@ function App() {
           <Button onClick={handleGetUserData}>GetUserData</Button>
           <Button onClick={handleGetGeoPosition}>GetGeo</Button>
           <Button onClick={handleLogOut}>LogOut</Button>
+          <Button onClick={createChart}>Chart</Button>
         </div>
       )}
       {geoPosition && (
@@ -366,36 +425,160 @@ function App() {
           >
             Stick
           </Button>
-          <div className="cigarette-box">
-            <div className="d-flex">
-              <div className="circle smoked"></div>
-              <div className="circle smoked"></div>
-              <div className="circle smoked"></div>
-              <div className="circle"></div>
-              <div className="circle"></div>
-              <div className="circle"></div>
-              <div className="circle"></div>
+          {todaySmokings && (
+            <div className="cigarette-box">
+              <div className="d-flex">
+                <div className="circle-background">
+                  <div
+                    className={
+                      todaySmokings.length >= 1 ? "circle smoked" : "circle"
+                    }
+                  ></div>
+                </div>
+                <div className="circle-background">
+                  <div
+                    className={
+                      todaySmokings.length >= 2 ? "circle smoked" : "circle"
+                    }
+                  ></div>
+                </div>
+                <div className="circle-background">
+                  <div
+                    className={
+                      todaySmokings.length >= 3 ? "circle smoked" : "circle"
+                    }
+                  ></div>
+                </div>
+                <div className="circle-background">
+                  <div
+                    className={
+                      todaySmokings.length >= 4 ? "circle smoked" : "circle"
+                    }
+                  ></div>
+                </div>
+                <div className="circle-background">
+                  <div
+                    className={
+                      todaySmokings.length >= 5 ? "circle smoked" : "circle"
+                    }
+                  ></div>
+                </div>
+                <div className="circle-background">
+                  <div
+                    className={
+                      todaySmokings.length >= 6 ? "circle smoked" : "circle"
+                    }
+                  ></div>
+                </div>
+                <div className="circle-background">
+                  <div
+                    className={
+                      todaySmokings.length >= 7 ? "circle smoked" : "circle"
+                    }
+                  ></div>
+                </div>
+              </div>
+              <div className="d-flex">
+                <div className="hole"></div>
+                <div className="circle-background">
+                  <div
+                    className={
+                      todaySmokings.length >= 8 ? "circle smoked" : "circle"
+                    }
+                  ></div>
+                </div>
+                <div className="circle-background">
+                  <div
+                    className={
+                      todaySmokings.length >= 9 ? "circle smoked" : "circle"
+                    }
+                  ></div>
+                </div>
+                <div className="circle-background">
+                  <div
+                    className={
+                      todaySmokings.length >= 10 ? "circle smoked" : "circle"
+                    }
+                  ></div>
+                </div>
+                <div className="circle-background">
+                  <div
+                    className={
+                      todaySmokings.length >= 11 ? "circle smoked" : "circle"
+                    }
+                  ></div>
+                </div>
+                <div className="circle-background">
+                  <div
+                    className={
+                      todaySmokings.length >= 12 ? "circle smoked" : "circle"
+                    }
+                  ></div>
+                </div>
+                <div className="circle-background">
+                  <div
+                    className={
+                      todaySmokings.length >= 13 ? "circle smoked" : "circle"
+                    }
+                  ></div>
+                </div>
+                <div className="hole"></div>
+              </div>
+              <div className="d-flex">
+                <div className="circle-background">
+                  <div
+                    className={
+                      todaySmokings.length >= 14 ? "circle smoked" : "circle"
+                    }
+                  ></div>
+                </div>
+                <div className="circle-background">
+                  <div
+                    className={
+                      todaySmokings.length >= 15 ? "circle smoked" : "circle"
+                    }
+                  ></div>
+                </div>
+                <div className="circle-background">
+                  <div
+                    className={
+                      todaySmokings.length >= 16 ? "circle smoked" : "circle"
+                    }
+                  ></div>
+                </div>
+                <div className="circle-background">
+                  <div
+                    className={
+                      todaySmokings.length >= 17 ? "circle smoked" : "circle"
+                    }
+                  ></div>
+                </div>
+                <div className="circle-background">
+                  <div
+                    className={
+                      todaySmokings.length >= 18 ? "circle smoked" : "circle"
+                    }
+                  ></div>
+                </div>
+                <div className="circle-background">
+                  <div
+                    className={
+                      todaySmokings.length >= 19 ? "circle smoked" : "circle"
+                    }
+                  ></div>
+                </div>
+                <div className="circle-background">
+                  <div
+                    className={
+                      todaySmokings.length >= 20 ? "circle smoked" : "circle"
+                    }
+                  ></div>
+                </div>
+              </div>
             </div>
-            <div className="d-flex">
-              <div className="hole"></div>
-              <div className="circle"></div>
-              <div className="circle"></div>
-              <div className="circle"></div>
-              <div className="circle"></div>
-              <div className="circle"></div>
-              <div className="circle"></div>
-              <div className="hole"></div>
-            </div>
-            <div className="d-flex">
-              <div className="circle"></div>
-              <div className="circle"></div>
-              <div className="circle"></div>
-              <div className="circle"></div>
-              <div className="circle"></div>
-              <div className="circle"></div>
-              <div className="circle"></div>
-            </div>
-          </div>
+          )}
+
+          <div id="chart01"></div>
           {/* a1TimeStampGlobal() {
       return new Date(this.timeStamp);
     },
@@ -420,7 +603,7 @@ function App() {
               {weights.map((item) => {
                 return (
                   <li key={item.id}>
-                    {item.id}.{item.weight} - {item.timestamp}
+                    {item.weight} - {String(new Date(item.timestamp))}
                   </li>
                 );
               })}

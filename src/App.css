@@ -1,5 +1,5 @@
 :root {
-  --cigarette-diameter: 8rem;
+  --cigarette-diameter: 10vw;
 }
 
 @media (width > 1100px) {
@@ -16,16 +16,22 @@
   display: flex;
 }
 
+.cigarette-box {
+  border: 1px solid grey;
+  display: inline-block;
+}
+
 .circle {
   width: var(--cigarette-diameter);
   height: var(--cigarette-diameter);
-  background-color: yellow;
+  margin: calc(var(--cigarette-diameter) / 16);
+  background-color: hsl(0, 0%, 95%);
   border-radius: 50%;
-  border: 1px solid orange;
+  border: 1px solid hsl(0, 0%, 50%);
 }
 
 .circle.smoked {
-  background-color: red;
+  background-color: hsl(0, 0%, 50%);
 }
 
 .hole {
