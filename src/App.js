@@ -21,6 +21,7 @@ function App() {
   const [isAuthUser, setIsAuthUser] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [geoPosition, setGeoPosition] = useState(null);
+  const [userDataByDays, setUserDataByDays] = useState(null);
 
   const validateAuthForm = () => {
     console.log("Валидация авторизации");
@@ -104,12 +105,15 @@ function App() {
   };
 
   const handleGetUserData = () => {
-    fetch("https://www.d-skills.ru/87_stop_smoking/php/getuser.php?userid=1")
+    fetch(
+      "https://www.d-skills.ru/87_stop_smoking/php/getuser.php?userid=1&days=7"
+    )
       .then((response) => response.json())
       .then((json) => {
         console.log(json);
         setSmokings(json.smokings);
         setweights(json.weights);
+        setUserDataByDays(json.userDataByDays);
       });
   };
 
@@ -423,20 +427,22 @@ function App() {
             </ul>
           )}
           <h3>Курение</h3>
-          {smokings.length && (
-            <ul>
-              {smokings.map((item) => {
-                return (
-                  <li key={item.id}>
-                    {item.id}.{item.type} - {item.timestamp} -{" "}
-                    {String(new Date(item.timestamp))} -
-                    {/* {new Date(item.timestamp * 1000).getTimezoneOffset() *
+          {userDataByDays && (
+            <ol>
+              {userDataByDays[userDataByDays.length - 1].smokings.map(
+                (item) => {
+                  return (
+                    <li key={item.id}>
+                      {item.type} - {item.timestamp} -{" "}
+                      {String(new Date(item.timestamp))} -
+                      {/* {new Date(item.timestamp * 1000).getTimezoneOffset() *
                       60000}{" "}
                     - */}
-                  </li>
-                );
-              })}
-            </ul>
+                    </li>
+                  );
+                }
+              )}
+            </ol>
           )}
         </>
       )}

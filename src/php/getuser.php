@@ -12,10 +12,50 @@ header('Access-Control-Allow-Headers: Authorization, Origin, X-Requested-With, A
 //Подключение RedBeanPHP и БД
 require 'db.php';
 
-if ($_SESSION['auth_user_id']) {
+$userId = $_SESSION['auth_user_id'];
+
+$queries = array();
+parse_str($_SERVER['QUERY_STRING'], $queries);
+if (!$_SESSION['auth_user_id']) {
+  $userId = $queries['userid'];
+}
+$days = $queries['days'];
+
+if ($userId) {
 //Чтение записей
-$smokingsDB = R::find('smokings', 'userid = ? ORDER BY timestamp DESC', array($_SESSION['auth_user_id']));
-$weightsDB = R::find('weights', 'userid = ? ORDER BY timestamp DESC', array($_SESSION['auth_user_id']));
+$smokingsDB = R::find('smokings', 'userid = ? ORDER BY timestamp DESC', array($userId));
+$weightsDB = R::find('weights', 'userid = ? ORDER BY timestamp DESC', array($userId));
+$userDB = R::findOne('users', 'id = ?', array($userId));
+$timeZoneOffset = $userDB->time_zone_offset;
+$requestTimeStamp = $_SERVER['REQUEST_TIME'];
+$timeFromTodayStart = $_SERVER['REQUEST_TIME'] % 86400;
+$startOfToday = $_SERVER['REQUEST_TIME'] - $_SERVER['REQUEST_TIME'] % 86400;
+
+$smokingsThreeDays = R::find('smokings', 'userid = ? AND TIMESTAMP > ? ORDER BY timestamp DESC', array($userId, $startOfToday - 0 * 86400 + $timeZoneOffset * 60));
+
+$userDataByDays = array();
+for ($i = $days; $i >= 0; $i--) {
+	$oneDaySmokingsDB = array();
+	if ($i != 0) {
+	  $oneDaySmokingsDB = R::find('smokings', 'userid = ? AND TIMESTAMP >= ? AND TIMESTAMP < ? ORDER BY timestamp DESC', array($userId, $startOfToday - $i * 86400 + $timeZoneOffset * 60, $startOfToday - ($i - 1) * 86400 + $timeZoneOffset * 60));
+	} else {
+	  $oneDaySmokingsDB = R::find('smokings', 'userid = ? AND TIMESTAMP >= ? ORDER BY timestamp DESC', array($userId, $startOfToday - $i * 86400 + $timeZoneOffset * 60));
+	};
+	$oneDaySmokings = array();
+	foreach( $oneDaySmokingsDB as $smokingItem) {
+      $smoking = array(
+	    'id' => $smokingItem->id,
+	    'type' => $smokingItem->type,
+	    'timestamp' => $smokingItem->timestamp * 1000,
+	  );
+	  array_push($oneDaySmokings, $smoking);
+    };
+	$oneDay = array(
+	  'dayStartTimestamp' => ($startOfToday - $i * 86400) * 1000,
+	  'smokings' => $oneDaySmokings,
+	);
+	array_push($userDataByDays, $oneDay);
+};
 
 //Сборка массива заданий
 $smokings = array();
@@ -36,10 +76,24 @@ foreach( $weightsDB as $weightItem) {
 	);
 	array_push($weights, $smoking);
 };
+$smokingsDays = array();
+foreach( $smokingsThreeDays as $smokingItem) {
+  $smoking = array(
+	  'id' => $smokingItem->id,
+	  'type' => $smokingItem->type,
+	  'timestamp' => $smokingItem->timestamp * 1000,
+	);
+	array_push($smokingsDays, $smoking);
+};
 
 $response = array(
   'smokings' => $smokings,
-  'weights' => $weights
+  'weights' => $weights,
+  'byDays' => $smokingsDays,
+  'offset' => $timeZoneOffset,
+  'user' => $userDB->login,
+  'session' => $_SESSION,
+  'userDataByDays' => $userDataByDays,
 );
 
 // Отправка JSON-ответа

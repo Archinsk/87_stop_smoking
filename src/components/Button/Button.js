@@ -3,8 +3,6 @@ import "./Button.css";
 import Icon from "../Icon/Icon";
 
 const Button = ({ className, children, type = "button", icon, ...props }) => {
-  console.log(children);
-
   return (
     <button
       className={`button${className ? " " + className : ""}`}
