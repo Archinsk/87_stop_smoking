@@ -11,6 +11,7 @@ import {
   Legend,
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
+import ResponseRoute from "./routes/ResponseRoute/ResponseRoute";
 
 Chart.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -30,10 +31,11 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [isNotification, setIsNotification] = useState(false);
   const [isAuthUser, setIsAuthUser] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
+  const [showSettings, setShowSettings] = useState(true);
   const [geoPosition, setGeoPosition] = useState("geo");
   const [userDataByDays, setUserDataByDays] = useState(null);
   const [chart, setChart] = useState(false);
+  const [response, setResponse] = useState(null);
 
   const todaySmokings = useMemo(() => {
     if (userDataByDays) {
@@ -239,28 +241,95 @@ function App() {
     new Chart(document.getElementById("chart01"), barChart.config);
   };
 
+  const getRequest = (requestType, queries) => {
+    let url =
+      "https://www.d-skills.ru/87_stop_smoking/php/stopsmokingrestapi.php";
+    if (requestType) {
+      url += "/" + requestType;
+    }
+    if (queries) {
+      url += "?";
+      for (let key in queries) {
+        url += key + "=" + queries[key] + "&";
+      }
+      url = url.slice(0, -1);
+    }
+    fetch(url)
+      .then((response) => response.json())
+      .then((json) => {
+        console.log(json);
+        setResponse(json);
+      });
+  };
+
+  const postRequest = () => {
+    fetch(
+      "https://www.d-skills.ru/87_stop_smoking/php/stopsmokingrestapi.php/smoking",
+      {
+        method: "POST",
+        body: {},
+        headers: {
+          "Content-type": "application/json; charset=UTF-8",
+        },
+      }
+    )
+      .then((response) => response.json())
+      .then((json) => {
+        console.log(json);
+        setResponse(json);
+      });
+  };
+
   return (
     <div className="app">
-      <span className="material-icons">smoke_free</span> Stop Smoking
-      <Button icon="settings" onClick={() => setShowSettings(!showSettings)} />
+      {/* <span className="material-icons">smoke_free</span> Stop Smoking
+      <Button icon="settings" onClick={() => setShowSettings(!showSettings)} /> */}
       {showSettings && (
         <div>
-          <Button onClick={() => setScreen("registration")}>Рег</Button>
+          {/* <Button onClick={() => setScreen("registration")}>Рег</Button> */}
           <Button onClick={() => setScreen("authorization")}>Авт</Button>
           <Button onClick={() => setScreen("main")}>Осн</Button>
-          <Button onClick={resetUser}>Reset</Button>
-          <Button onClick={handleCheckUserAuthentication}>CheckAuth</Button>
+          {/* <Button onClick={resetUser}>Reset</Button>
+          <Button onClick={handleCheckUserAuthentication}>CheckAuth</Button> */}
           <Button onClick={handleGetUserData}>GetUserData</Button>
-          <Button onClick={handleGetGeoPosition}>GetGeo</Button>
+          {/* <Button onClick={handleGetGeoPosition}>GetGeo</Button>
           <Button onClick={handleLogOut}>LogOut</Button>
-          <Button onClick={createChart}>Chart</Button>
+          <Button onClick={createChart}>Chart</Button> */}
+          <Button onClick={getRequest}>GET</Button>
+          <Button onClick={postRequest}>POST</Button>
+          <Button onClick={() => setScreen("response-route")}>Response</Button>
+          <Button
+            onClick={() => {
+              getRequest("auth", { userid: 1 });
+            }}
+          >
+            CheckAuth
+          </Button>
+          <Button
+            onClick={() => {
+              getRequest("user", { userid: 1 });
+            }}
+          >
+            GetUser
+          </Button>
+          <Button
+            onClick={() => {
+              getRequest("logout");
+            }}
+          >
+            LogOut
+          </Button>
+          <Button
+            onClick={() => {
+              getRequest("userid");
+            }}
+          >
+            UserId
+          </Button>
         </div>
       )}
-      {geoPosition && (
-        <div>
-          <div>latitude : {geoPosition.lat}</div>
-          <div>longitude : {geoPosition.long}</div>
-        </div>
+      {screen === "response-route" && (
+        <ResponseRoute responseData={response}></ResponseRoute>
       )}
       {screen === "authorization" && (
         <>
@@ -379,6 +448,12 @@ function App() {
       )}
       {screen === "main" && (
         <>
+          {geoPosition && (
+            <div>
+              <div>latitude : {geoPosition.lat}</div>
+              <div>longitude : {geoPosition.long}</div>
+            </div>
+          )}
           {/* <div className="alert">
             Для достижения результата начните фиксировать каждую выкуриваемую
             сигарету и стик в момент начала курения. Рекомендации появятся после

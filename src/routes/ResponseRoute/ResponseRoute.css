@@ -1,0 +1,10 @@
+.response-route {
+  .property {
+    width: 100%;
+    display: flex;
+  }
+
+  .property-key {
+    margin-right: 1rem;
+  }
+}
