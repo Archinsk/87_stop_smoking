@@ -1,7 +1,18 @@
 import { useContext, useMemo, useState } from "react";
 import "./App.css";
 import Button from "./components/Button/Button";
-import { Chart } from "chart.js";
+import {
+  Chart,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import { Bar } from "react-chartjs-2";
+
+Chart.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 function App() {
   const [screen, setScreen] = useState("main");
@@ -199,7 +210,6 @@ function App() {
   }
   const barChart = {
     config: {
-      type: "bar",
       data: {
         labels: [
           "Chrome",
@@ -578,7 +588,7 @@ function App() {
             </div>
           )}
 
-          <div id="chart01"></div>
+          <Bar data={barChart.config.data} />
           {/* a1TimeStampGlobal() {
       return new Date(this.timeStamp);
     },
