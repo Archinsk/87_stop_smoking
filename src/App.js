@@ -11,11 +11,16 @@ import {
   Legend,
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
-import ResponseRoute from "./routes/ResponseRoute/ResponseRoute";
+import AuthRoute from "./routes/AuthRoute/AuthRoute";
+import RegistrationRoute from "./routes/RegistrationRoute/RegistrationRoute";
+import SmokingRoute from "./routes/SmokingRoute/SmokingRoute";
+import WeightRoute from "./routes/WeightRoute/WeightRoute";
+import RequestRoute from "./routes/RequestRoute/RequestRoute";
 
 Chart.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 function App() {
+  const [route, setRoute] = useState("loading-route");
   const [screen, setScreen] = useState("main");
   const [user, setUser] = useState({
     login: "",
@@ -284,55 +289,14 @@ function App() {
     <div className="app">
       {/* <span className="material-icons">smoke_free</span> Stop Smoking
       <Button icon="settings" onClick={() => setShowSettings(!showSettings)} /> */}
-      {showSettings && (
-        <div>
-          {/* <Button onClick={() => setScreen("registration")}>Рег</Button> */}
-          <Button onClick={() => setScreen("authorization")}>Авт</Button>
-          <Button onClick={() => setScreen("main")}>Осн</Button>
-          {/* <Button onClick={resetUser}>Reset</Button>
-          <Button onClick={handleCheckUserAuthentication}>CheckAuth</Button> */}
-          <Button onClick={handleGetUserData}>GetUserData</Button>
-          {/* <Button onClick={handleGetGeoPosition}>GetGeo</Button>
-          <Button onClick={handleLogOut}>LogOut</Button>
-          <Button onClick={createChart}>Chart</Button> */}
-          <Button onClick={getRequest}>GET</Button>
-          <Button onClick={postRequest}>POST</Button>
-          <Button onClick={() => setScreen("response-route")}>Response</Button>
-          <Button
-            onClick={() => {
-              getRequest("auth", { userid: 1 });
-            }}
-          >
-            CheckAuth
-          </Button>
-          <Button
-            onClick={() => {
-              getRequest("user", { userid: 1 });
-            }}
-          >
-            GetUser
-          </Button>
-          <Button
-            onClick={() => {
-              getRequest("logout");
-            }}
-          >
-            LogOut
-          </Button>
-          <Button
-            onClick={() => {
-              getRequest("userid");
-            }}
-          >
-            UserId
-          </Button>
-        </div>
-      )}
-      {screen === "response-route" && (
-        <ResponseRoute responseData={response}></ResponseRoute>
-      )}
-      {screen === "authorization" && (
-        <>
+      <div className="navbar">
+        <Button onClick={() => setRoute("smoking-route")}>Smoking</Button>
+        <Button onClick={() => setRoute("weight-route")}>Weight</Button>
+        <Button onClick={() => setRoute("auth-route")}>Auth</Button>
+        <Button onClick={() => setRoute("request-route")}>Request</Button>
+      </div>
+      {route === "auth-route" && (
+        <AuthRoute>
           <h2>Форма Авторизации</h2>
           <form onSubmit={handleSubmitForm}>
             <div className="form-group">
@@ -372,17 +336,17 @@ function App() {
               <Button
                 type="button"
                 onClick={() => {
-                  setScreen("registration");
+                  setRoute("registration-route");
                 }}
               >
                 Зарегистрироваться
               </Button>
             </div>
           </form>
-        </>
+        </AuthRoute>
       )}
-      {screen === "registration" && (
-        <>
+      {route === "registration-route" && (
+        <RegistrationRoute>
           <h2>Форма регистрации</h2>
           <form onSubmit={handleSubmitForm}>
             <div className="form-group">
@@ -444,55 +408,14 @@ function App() {
               </Button>
             </div>
           </form>
-        </>
+        </RegistrationRoute>
       )}
-      {screen === "main" && (
-        <>
-          {geoPosition && (
-            <div>
+      {route === "smoking-route" && (
+        <SmokingRoute>
+          {/* <div>
               <div>latitude : {geoPosition.lat}</div>
               <div>longitude : {geoPosition.long}</div>
-            </div>
-          )}
-          {/* <div className="alert">
-            Для достижения результата начните фиксировать каждую выкуриваемую
-            сигарету и стик в момент начала курения. Рекомендации появятся после
-            трех дней ведения сттистики
-          </div>
-          <div className="alert">
-            Рекомендуется исключить курение в период с ... по ...
-          </div>
-          <div className="alert">
-            В течение ... дней выкуривается не более ... сигарет/стиков
-          </div>
-          <div className="alert">
-            Съэкономлено ... рублей на покупке сигарет/стиков, ... минут жизни,
-            ранее затрачиваемых на курение
-          </div>
-          <div className="alert">Вы не курите ... дней</div> */}
-          <h2>Форма регистрации веса</h2>
-          <form>
-            <div className="form-group">
-              <label htmlFor="userWeight" className="form-label">
-                Вес
-              </label>
-              <input
-                className="form-control"
-                id="userWeight"
-                value={user.weight}
-                onChange={(e) => setUser({ ...user, weight: e.target.value })}
-              />
-              <div id="registrationLoginHelp" className="form-text">
-                Help text
-              </div>
-            </div>
-            <div>
-              <Button type="button">Отмена</Button>
-              <Button type="button" onClick={handleSetUserWeight}>
-                Отправить
-              </Button>
-            </div>
-          </form>
+          </div> */}
           <h2>Регистр курения</h2>
           <Button
             type="button"
@@ -664,36 +587,7 @@ function App() {
           )}
 
           <Bar data={barChart.config.data} />
-          {/* a1TimeStampGlobal() {
-      return new Date(this.timeStamp);
-    },
-    a2timeZoneOffsetMs() {
-      return new Date(this.timeStamp).getTimezoneOffset() * 60000;
-    },
-    a3timeStampWithTimezoneOffset: function () {
-      return new Date(this.timeStamp - this.timeZoneOffsetMs);
-    },
-    a4startOfDayGMTinMs() {
-      return new Date(this.startOfDayGMTinMs);
-    },
-    a5startOfDayLocalinMs() {
-      return new Date(this.startOfDayLocalinMs);
-    },
-    a6finishOfDayLocalinMs() {
-      return new Date(this.finishOfDayLocalinMs);
-    }, */}
-          <h3>Веса</h3>
-          {weights.length && (
-            <ul>
-              {weights.map((item) => {
-                return (
-                  <li key={item.id}>
-                    {item.weight} - {String(new Date(item.timestamp))}
-                  </li>
-                );
-              })}
-            </ul>
-          )}
+
           <h3>Курение</h3>
           {userDataByDays && (
             <ol>
@@ -712,8 +606,102 @@ function App() {
               )}
             </ol>
           )}
-        </>
+        </SmokingRoute>
       )}
+      {route === "weight-route" && (
+        <WeightRoute>
+          <h2>Форма регистрации веса</h2>
+          <form>
+            <div className="form-group">
+              <label htmlFor="userWeight" className="form-label">
+                Вес
+              </label>
+              <input
+                className="form-control"
+                id="userWeight"
+                value={user.weight}
+                onChange={(e) => setUser({ ...user, weight: e.target.value })}
+              />
+              <div id="registrationLoginHelp" className="form-text">
+                Help text
+              </div>
+            </div>
+            <div>
+              <Button type="button">Отмена</Button>
+              <Button type="button" onClick={handleSetUserWeight}>
+                Отправить
+              </Button>
+            </div>
+          </form>
+          <h3>Веса</h3>
+          {weights.length && (
+            <ul>
+              {weights.map((item) => {
+                return (
+                  <li key={item.id}>
+                    {item.weight} - {String(new Date(item.timestamp))}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </WeightRoute>
+      )}
+      {route === "request-route" && (
+        <RequestRoute responseData={response}>
+          <div>
+            <Button onClick={getRequest}>GET</Button>
+            <Button onClick={postRequest}>POST</Button>
+            <Button
+              onClick={() => {
+                getRequest("auth", { userid: 1 });
+              }}
+            >
+              CheckAuth
+            </Button>
+            <Button
+              onClick={() => {
+                getRequest("user", { userid: 1 });
+              }}
+            >
+              GetUser
+            </Button>
+            <Button
+              onClick={() => {
+                getRequest("logout");
+              }}
+            >
+              LogOut
+            </Button>
+            <Button
+              onClick={() => {
+                getRequest("userid");
+              }}
+            >
+              UserId
+            </Button>
+            <Button onClick={handleGetUserData}>GetUserData</Button>
+            {/* <Button onClick={handleGetGeoPosition}>GetGeo</Button> */}
+          </div>
+        </RequestRoute>
+      )}
+
+      {/* <div className="alert">
+        Для достижения результата начните фиксировать каждую выкуриваемую
+        сигарету и стик в момент начала курения. Рекомендации появятся после
+        трех дней ведения сттистики
+      </div>
+      <div className="alert">
+        Рекомендуется исключить курение в период с ... по ...
+      </div>
+      <div className="alert">
+        В течение ... дней выкуривается не более ... сигарет/стиков
+      </div>
+      <div className="alert">
+        Съэкономлено ... рублей на покупке сигарет/стиков, ... минут жизни,
+        ранее затрачиваемых на курение
+      </div>
+      <div className="alert">Вы не курите ... дней</div> */}
     </div>
   );
 }

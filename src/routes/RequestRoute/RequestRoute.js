@@ -1,7 +1,7 @@
 import React from "react";
-import "./ResponseRoute.css";
+import "./RequestRoute.css";
 
-const ResponseRoute = ({ responseData, children, ...props }) => {
+const RequestRoute = ({ responseData, children, ...props }) => {
   let response;
 
   const createKeyValuePair = (data) => {
@@ -25,11 +25,12 @@ const ResponseRoute = ({ responseData, children, ...props }) => {
     response = "no Response Data";
   }
   return (
-    <div className="response-route" {...props}>
+    <div className="request-route" {...props}>
+      <div>Request Route</div>
       <div className="response">{response}</div>
       {children}
     </div>
   );
 };
 
-export default ResponseRoute;
+export default RequestRoute;
