@@ -1,11 +1,12 @@
 import React from "react";
 import "./SmokingRoute.css";
 
-const SmokingRoute = ({ data, children, ...props }) => {
+const SmokingRoute = ({ className, children, ...props }) => {
   return (
-    <div className="smoking-route" {...props}>
-      <div>Smoking Route</div>
-      <div className="response">{data}</div>
+    <div
+      className={`smoking-route${className ? " " + className : ""}`}
+      {...props}
+    >
       {children}
     </div>
   );

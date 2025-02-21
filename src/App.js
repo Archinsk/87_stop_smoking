@@ -16,6 +16,7 @@ import RegistrationRoute from "./routes/RegistrationRoute/RegistrationRoute";
 import SmokingRoute from "./routes/SmokingRoute/SmokingRoute";
 import WeightRoute from "./routes/WeightRoute/WeightRoute";
 import RequestRoute from "./routes/RequestRoute/RequestRoute";
+import Alert from "./components/Alert/Alert";
 
 Chart.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -120,11 +121,11 @@ function App() {
       .then((json) => {
         console.log(json);
         if (json.user) {
-          setScreen("main");
+          setRoute("smoking-route");
           handleGetUserData();
         }
         if (json.error) {
-          setScreen("authorization");
+          setRoute("auth-route");
         }
         setCheckUserAuth(true);
       });
@@ -289,7 +290,7 @@ function App() {
     <div className="app">
       {/* <span className="material-icons">smoke_free</span> Stop Smoking
       <Button icon="settings" onClick={() => setShowSettings(!showSettings)} /> */}
-      <div className="navbar">
+      <div className="navbar mb-3">
         <Button onClick={() => setRoute("smoking-route")}>Smoking</Button>
         <Button onClick={() => setRoute("weight-route")}>Weight</Button>
         <Button onClick={() => setRoute("auth-route")}>Auth</Button>
@@ -416,23 +417,39 @@ function App() {
               <div>latitude : {geoPosition.lat}</div>
               <div>longitude : {geoPosition.long}</div>
           </div> */}
-          <h2>Регистр курения</h2>
-          <Button
-            type="button"
-            onClick={() => {
-              handleSetSmoking("cigarette");
-            }}
-          >
-            Cigarette
-          </Button>
-          <Button
-            type="button"
-            onClick={() => {
-              handleSetSmoking("stick");
-            }}
-          >
-            Stick
-          </Button>
+          <Alert className="mb-3">
+            <div>User name: empty</div>
+            {userDataByDays && (
+              <div>
+                Last smoking:{" "}
+                {String(
+                  new Date(
+                    userDataByDays[
+                      userDataByDays.length - 1
+                    ].smokings[0].timestamp
+                  )
+                )}
+              </div>
+            )}
+          </Alert>
+          <div className="mb-3">
+            <Button
+              type="button"
+              onClick={() => {
+                handleSetSmoking("cigarette");
+              }}
+            >
+              Cigarette
+            </Button>
+            <Button
+              type="button"
+              onClick={() => {
+                handleSetSmoking("stick");
+              }}
+            >
+              Stick
+            </Button>
+          </div>
           {todaySmokings && (
             <div className="cigarette-box">
               <div className="d-flex">
@@ -587,25 +604,6 @@ function App() {
           )}
 
           <Bar data={barChart.config.data} />
-
-          <h3>Курение</h3>
-          {userDataByDays && (
-            <ol>
-              {userDataByDays[userDataByDays.length - 1].smokings.map(
-                (item) => {
-                  return (
-                    <li key={item.id}>
-                      {item.type} - {item.timestamp} -{" "}
-                      {String(new Date(item.timestamp))} -
-                      {/* {new Date(item.timestamp * 1000).getTimezoneOffset() *
-                      60000}{" "}
-                    - */}
-                    </li>
-                  );
-                }
-              )}
-            </ol>
-          )}
         </SmokingRoute>
       )}
       {route === "weight-route" && (
