@@ -32,11 +32,17 @@ if ($_SERVER[REQUEST_METHOD] == 'GET') {
   if ($queries['userid']) {
     $authUserId = $queries['userid'];
   }
+
+  //Проверка наличия пользователя с id из сессии в БД и получение его данных
+  $userDB = R::findOne('users', 'id = ?', array($authUserId));
   
   //get-auth - проверка авторизации
   if ($_SERVER[PATH_INFO] == '/auth') {
-    if ($authUserId) {
+    if ($userDB) {
+      $user = new stdClass();
+      $user->name = $userDB->login;
       $response->auth = true;
+      $response->user = $user;
 	} else {
 	  $response->auth = false;
 	};
@@ -44,8 +50,87 @@ if ($_SERVER[REQUEST_METHOD] == 'GET') {
   
   //get-user - данные пользователя
   if ($_SERVER[PATH_INFO] == '/user') {
-    if ($authUserId) {
-      $response->user = new stdClass();
+    if ($userDB) {
+      $timeZoneOffset = $userDB->time_zone_offset;
+      $requestTimeStamp = $_SERVER['REQUEST_TIME'];
+      $timeFromTodayStart = ($_SERVER['REQUEST_TIME'] - $timeZoneOffset * 60) % 86400;
+      $days = $queries['days'];
+
+      userDataByDays = new stdClass();
+      for ($i = $days; $i >= 0; $i--) {
+        $oneDaySmokingsDB = array();
+        $oneDayWeightsDB = array();
+        if ($i != 0) {
+          $oneDaySmokingsDB = R::find('smokings', 'userid = ? AND TIMESTAMP >= ? AND TIMESTAMP < ? ORDER BY timestamp DESC', array($userDB->id, $startOfToday - $i * 86400 + $timeZoneOffset * 60, $startOfToday - ($i - 1) * 86400 + $timeZoneOffset * 60));
+          $oneDayWeightsDB = R::find('weights', 'userid = ? AND TIMESTAMP >= ? AND TIMESTAMP < ? ORDER BY timestamp DESC', array($userDB->id, $startOfToday - $i * 86400 + $timeZoneOffset * 60, $startOfToday - ($i - 1) * 86400 + $timeZoneOffset * 60));
+        } else {
+          $oneDaySmokingsDB = R::find('smokings', 'userid = ? AND TIMESTAMP >= ? ORDER BY timestamp DESC', array($userDB->id, $startOfToday - $i * 86400 + $timeZoneOffset * 60));
+          $oneDayWeightsDB = R::find('weights', 'userid = ? AND TIMESTAMP >= ? ORDER BY timestamp DESC', array($userDB->id, $startOfToday - $i * 86400 + $timeZoneOffset * 60));
+        };
+        $oneDaySmokings = array();
+        foreach( $oneDaySmokingsDB as $smokingItem) {
+            $smoking = array(
+            'id' => $smokingItem->id,
+            'type' => $smokingItem->type,
+            'timestamp' => $smokingItem->timestamp * 1000,
+          );
+          array_push($oneDaySmokings, $smoking);
+          };
+        $oneDayWeights = array();
+        foreach( $oneDayWeightsDB as $weightItem) {
+            $weight = array(
+            'id' => $weightItem->id,
+            'type' => $weightItem->type,
+            'timestamp' => $weightItem->timestamp * 1000,
+          );
+          array_push($oneDayWeights, $weight);
+          };
+        $oneDay = array(
+          'dayStartTimestamp' => ($startOfToday - $i * 86400) * 1000,
+          'smokings' => $oneDaySmokings,
+          'weights' => $oneDayWeights,
+        );
+        array_push(userDataByDays, $oneDay);
+      };
+
+      //Сборка массива заданий
+      $smokings = array();
+      foreach( $smokingsDB as $smokingItem) {
+        $smoking = array(
+          'id' => $smokingItem->id,
+          'type' => $smokingItem->type,
+          'timestamp' => $smokingItem->timestamp * 1000,
+        );
+        array_push($smokings, $smoking);
+      };
+      $weights = array();
+      foreach( $weightsDB as $weightItem) {
+        $smoking = array(
+          'id' => $weightItem->id,
+          'weight' => $weightItem->weight,
+          'timestamp' => $weightItem->timestamp * 1000,
+        );
+        array_push($weights, $smoking);
+      };
+      $smokingsDays = array();
+      foreach( $smokingsThreeDays as $smokingItem) {
+        $smoking = array(
+          'id' => $smokingItem->id,
+          'type' => $smokingItem->type,
+          'timestamp' => $smokingItem->timestamp * 1000,
+        );
+        array_push($smokingsDays, $smoking);
+      };
+
+      $response = array(
+        'smokings' => $smokings,
+        'weights' => $weights,
+        'byDays' => $smokingsDays,
+        'offset' => $timeZoneOffset,
+        'user' => $userDB->login,
+        'session' => $_SESSION,
+        'userDataByDays' => $userDataByDays,
+      );
 	} else {
 	  $response->auth = false;
 	};

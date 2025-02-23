@@ -1,11 +1,9 @@
 import React from "react";
 import "./AuthRoute.css";
 
-const AuthRoute = ({ data, children, ...props }) => {
+const AuthRoute = ({ className, children, ...props }) => {
   return (
-    <div className="auth-route" {...props}>
-      <div>Auth Route</div>
-      <div className="response">{data}</div>
+    <div className={`auth-route${className ? " " + className : ""}`} {...props}>
       {children}
     </div>
   );

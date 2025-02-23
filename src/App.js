@@ -30,6 +30,7 @@ function App() {
     errorType: "",
     errorText: "",
     weight: "",
+    name: "",
   });
   const [smokings, setSmokings] = useState([]);
   const [weights, setweights] = useState([]);
@@ -116,10 +117,11 @@ function App() {
   };
 
   const handleCheckUserAuthentication = () => {
-    fetch("https://www.d-skills.ru/87_stop_smoking/php/checkauth.php")
+    fetch("https://www.d-skills.ru/87_stop_smoking/php/checkauth.php?userid=1")
       .then((response) => response.json())
       .then((json) => {
         console.log(json);
+        setUser({ ...user, name: json.user.name });
         if (json.user) {
           setRoute("smoking-route");
           handleGetUserData();
@@ -296,10 +298,13 @@ function App() {
         <Button onClick={() => setRoute("auth-route")}>Auth</Button>
         <Button onClick={() => setRoute("request-route")}>Request</Button>
       </div>
+      <Alert className="mb-3">
+        <div>User name: {user.name ? user.name : "empty"}</div>
+      </Alert>
       {route === "auth-route" && (
         <AuthRoute>
-          <h2>Форма Авторизации</h2>
-          <form onSubmit={handleSubmitForm}>
+          <h2>Авторизация</h2>
+          <form className="mb-3">
             <div className="form-group">
               <label htmlFor="authLogin" className="form-label">
                 Логин
@@ -329,27 +334,27 @@ function App() {
                 Help text
               </div>
             </div>
-            <div>
-              <Button type="button">Отмена</Button>
-              <Button type="button" onClick={handleAuthenticateUser}>
-                Войти
-              </Button>
-              <Button
-                type="button"
-                onClick={() => {
-                  setRoute("registration-route");
-                }}
-              >
-                Зарегистрироваться
-              </Button>
-            </div>
           </form>
+          <div>
+            <Button type="button">Отмена</Button>
+            <Button type="button" onClick={handleAuthenticateUser}>
+              Войти
+            </Button>
+            <Button
+              type="button"
+              onClick={() => {
+                setRoute("registration-route");
+              }}
+            >
+              Зарегистрироваться
+            </Button>
+          </div>
         </AuthRoute>
       )}
       {route === "registration-route" && (
         <RegistrationRoute>
-          <h2>Форма регистрации</h2>
-          <form onSubmit={handleSubmitForm}>
+          <h2>Регистрация</h2>
+          <form className="mb-3">
             <div className="form-group">
               <label htmlFor="registrationLogin" className="form-label">
                 Логин
@@ -402,13 +407,13 @@ function App() {
                 Help text
               </div>
             </div>
-            <div>
-              <Button type="button">Отмена</Button>
-              <Button type="button" onClick={handleRegistrateUser}>
-                Регистрация
-              </Button>
-            </div>
           </form>
+          <div>
+            <Button type="button">Отмена</Button>
+            <Button type="button" onClick={handleRegistrateUser}>
+              Регистрация
+            </Button>
+          </div>
         </RegistrationRoute>
       )}
       {route === "smoking-route" && (
@@ -418,7 +423,6 @@ function App() {
               <div>longitude : {geoPosition.long}</div>
           </div> */}
           <Alert className="mb-3">
-            <div>User name: empty</div>
             {userDataByDays && (
               <div>
                 Last smoking:{" "}
@@ -608,8 +612,8 @@ function App() {
       )}
       {route === "weight-route" && (
         <WeightRoute>
-          <h2>Форма регистрации веса</h2>
-          <form>
+          <h2>Вес</h2>
+          <form className="mb-3">
             <div className="form-group">
               <label htmlFor="userWeight" className="form-label">
                 Вес
@@ -624,13 +628,14 @@ function App() {
                 Help text
               </div>
             </div>
-            <div>
-              <Button type="button">Отмена</Button>
-              <Button type="button" onClick={handleSetUserWeight}>
-                Отправить
-              </Button>
-            </div>
           </form>
+          <div>
+            <Button type="button">Отмена</Button>
+            <Button type="button" onClick={handleSetUserWeight}>
+              Отправить
+            </Button>
+          </div>
+
           <h3>Веса</h3>
           {weights.length && (
             <ul>
@@ -647,7 +652,7 @@ function App() {
       )}
       {route === "request-route" && (
         <RequestRoute responseData={response}>
-          <div>
+          <div className="mb-3">
             <Button onClick={getRequest}>GET</Button>
             <Button onClick={postRequest}>POST</Button>
             <Button

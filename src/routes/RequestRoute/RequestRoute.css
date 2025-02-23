@@ -1,6 +1,4 @@
 .request-route {
-  background-color: yellow;
-
   .property {
     width: 100%;
     display: flex;
@@ -8,5 +6,13 @@
 
   .property-key {
     margin-right: 1rem;
+  }
+
+  .type-string {
+    color: red;
+  }
+
+  .type-boolean {
+    color: blue;
   }
 }

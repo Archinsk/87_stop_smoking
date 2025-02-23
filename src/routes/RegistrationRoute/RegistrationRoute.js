@@ -1,11 +1,12 @@
 import React from "react";
 import "./RegistrationRoute.css";
 
-const RegistrationRoute = ({ data, children, ...props }) => {
+const RegistrationRoute = ({ className, children, ...props }) => {
   return (
-    <div className="registration-route" {...props}>
-      <div>Registration Route</div>
-      <div className="response">{data}</div>
+    <div
+      className={`registration-route${className ? " " + className : ""}`}
+      {...props}
+    >
       {children}
     </div>
   );
