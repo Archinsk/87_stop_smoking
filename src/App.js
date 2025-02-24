@@ -664,7 +664,7 @@ function App() {
             </Button>
             <Button
               onClick={() => {
-                getRequest("user", { userid: 1 });
+                getRequest("user", { userid: 1, days: 7 });
               }}
             >
               GetUser

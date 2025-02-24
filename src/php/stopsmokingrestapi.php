@@ -43,20 +43,23 @@ if ($_SERVER[REQUEST_METHOD] == 'GET') {
       $user->name = $userDB->login;
       $response->auth = true;
       $response->user = $user;
-	} else {
-	  $response->auth = false;
-	};
+	  } else {
+	    $response->auth = false;
+	  };
   };
   
   //get-user - данные пользователя
   if ($_SERVER[PATH_INFO] == '/user') {
-    /* if ($userDB) {
+    if ($userDB) {
       $timeZoneOffset = $userDB->time_zone_offset;
       $requestTimeStamp = $_SERVER['REQUEST_TIME'];
       $timeFromTodayStart = ($_SERVER['REQUEST_TIME'] - $timeZoneOffset * 60) % 86400;
       $days = $queries['days'];
+      $requestTimeStamp = $_SERVER['REQUEST_TIME'];
+      $timeFromTodayStart = $_SERVER['REQUEST_TIME'] % 86400;
+      $startOfToday = $_SERVER['REQUEST_TIME'] - $_SERVER['REQUEST_TIME'] % 86400;
 
-      userDataByDays = new stdClass();
+      $userDataByDays = array();
       for ($i = $days; $i >= 0; $i--) {
         $oneDaySmokingsDB = array();
         $oneDayWeightsDB = array();
@@ -69,87 +72,47 @@ if ($_SERVER[REQUEST_METHOD] == 'GET') {
         };
         $oneDaySmokings = array();
         foreach( $oneDaySmokingsDB as $smokingItem) {
-            $smoking = array(
-            'id' => $smokingItem->id,
-            'type' => $smokingItem->type,
-            'timestamp' => $smokingItem->timestamp * 1000,
-          );
+          $smoking = new stdClass();
+          $smoking->id = $smokingItem->id;
+          $smoking->type = $smokingItem->type;
+          $smoking->timestamp = $smokingItem->timestamp * 1000;
           array_push($oneDaySmokings, $smoking);
-          };
+        };
         $oneDayWeights = array();
         foreach( $oneDayWeightsDB as $weightItem) {
-            $weight = array(
-            'id' => $weightItem->id,
-            'type' => $weightItem->type,
-            'timestamp' => $weightItem->timestamp * 1000,
-          );
+          $weight = new stdClass();
+          $weight->id = $weightItem->id;
+          $weight->timestamp = $weightItem->timestamp * 1000;
           array_push($oneDayWeights, $weight);
-          };
-        $oneDay = array(
-          'dayStartTimestamp' => ($startOfToday - $i * 86400) * 1000,
-          'smokings' => $oneDaySmokings,
-          'weights' => $oneDayWeights,
-        );
-        array_push(userDataByDays, $oneDay);
+        };
+        $oneDay = new stdClass();
+        $oneDay->dayStartTimestamp = ($startOfToday - $i * 86400) * 1000;
+        $oneDay->smokings = $oneDaySmokings;
+        $oneDay->weights = $oneDayWeights;
+        array_push($userDataByDays, $oneDay);
       };
 
-      //Сборка массива заданий
-      $smokings = array();
-      foreach( $smokingsDB as $smokingItem) {
-        $smoking = array(
-          'id' => $smokingItem->id,
-          'type' => $smokingItem->type,
-          'timestamp' => $smokingItem->timestamp * 1000,
-        );
-        array_push($smokings, $smoking);
-      };
-      $weights = array();
-      foreach( $weightsDB as $weightItem) {
-        $smoking = array(
-          'id' => $weightItem->id,
-          'weight' => $weightItem->weight,
-          'timestamp' => $weightItem->timestamp * 1000,
-        );
-        array_push($weights, $smoking);
-      };
-      $smokingsDays = array();
-      foreach( $smokingsThreeDays as $smokingItem) {
-        $smoking = array(
-          'id' => $smokingItem->id,
-          'type' => $smokingItem->type,
-          'timestamp' => $smokingItem->timestamp * 1000,
-        );
-        array_push($smokingsDays, $smoking);
-      };
-
-      $response = array(
-        'smokings' => $smokings,
-        'weights' => $weights,
-        'byDays' => $smokingsDays,
-        'offset' => $timeZoneOffset,
-        'user' => $userDB->login,
-        'session' => $_SESSION,
-        'userDataByDays' => $userDataByDays,
-      );
-	} else {
-	  $response->auth = false;
-	}; */
+      $response->session = $_SESSION;
+      $response->userDataByDays = $userDataByDays;
+	  } else {
+	    $response->auth = false;
+	  }; 
   };
   
   //get-userId - идентификатор текущего пользователя
   if ($_SERVER[PATH_INFO] == '/userid') {
     if ($authUserId) {
       $response->userId = $authUserId;
-	} else {
-	  $response->auth = false;
-	};
+	  } else {
+	    $response->auth = false;
+	  };
   };
   
   //get-logout - разлогинивание пользователя
   if ($_SERVER[PATH_INFO] == '/logout') {
     $response->logout = true;
-	$response->auth = false;
-	session_destroy();
+	  $response->auth = false;
+	  session_destroy();
   };
 };
 
