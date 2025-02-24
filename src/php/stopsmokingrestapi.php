@@ -50,7 +50,7 @@ if ($_SERVER[REQUEST_METHOD] == 'GET') {
   
   //get-user - данные пользователя
   if ($_SERVER[PATH_INFO] == '/user') {
-    if ($userDB) {
+    /* if ($userDB) {
       $timeZoneOffset = $userDB->time_zone_offset;
       $requestTimeStamp = $_SERVER['REQUEST_TIME'];
       $timeFromTodayStart = ($_SERVER['REQUEST_TIME'] - $timeZoneOffset * 60) % 86400;
@@ -133,7 +133,7 @@ if ($_SERVER[REQUEST_METHOD] == 'GET') {
       );
 	} else {
 	  $response->auth = false;
-	};
+	}; */
   };
   
   //get-userId - идентификатор текущего пользователя

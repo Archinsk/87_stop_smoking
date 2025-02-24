@@ -13,6 +13,18 @@
   }
 
   .type-boolean {
+    color: darkblue;
+  }
+
+  .type-number {
     color: blue;
+  }
+
+  .type-null {
+    color: purple;
+  }
+
+  .type-undefined {
+    color: grey;
   }
 }

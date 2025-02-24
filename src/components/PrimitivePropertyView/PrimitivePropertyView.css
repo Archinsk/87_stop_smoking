@@ -1,0 +1,28 @@
+.property {
+  width: 100%;
+  display: flex;
+}
+
+.property-key {
+  margin-right: 1rem;
+}
+
+.type-string {
+  color: red;
+}
+
+.type-boolean {
+  color: darkblue;
+}
+
+.type-number {
+  color: blue;
+}
+
+.type-null {
+  color: purple;
+}
+
+.type-undefined {
+  color: grey;
+}

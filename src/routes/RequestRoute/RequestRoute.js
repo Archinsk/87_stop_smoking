@@ -1,7 +1,17 @@
 import React from "react";
 import "./RequestRoute.css";
+import PrimitivePropertyView from "../../components/PrimitivePropertyView/PrimitivePropertyView";
+import ObjectView from "../../components/ObjectView/ObjectView";
 
 const RequestRoute = ({ responseData, className, children, ...props }) => {
+  const mockObject = {
+    firstName: "John",
+    lastName: "Snow",
+    age: 27,
+    location: undefined,
+    score: null,
+    isWarior: true,
+  };
   let response;
   const formatPrimitiveType = (primitiveData) => {
     if (typeof primitiveData === "string") {
@@ -30,15 +40,34 @@ const RequestRoute = ({ responseData, className, children, ...props }) => {
     return arrayData;
   };
 
+  const properties = () => {
+    let arrFromObj = [];
+    for (let dataKey in mockObject) {
+      arrFromObj.push({ key: dataKey, value: mockObject[dataKey] });
+    }
+    console.log(arrFromObj);
+
+    return (
+      <div>
+        {/* {arrFromObj.map((item) => {
+          return propertyView(item);
+        })} */}
+      </div>
+    );
+  };
+  properties();
+
   if (responseData) {
     response = createKeyValuePair(responseData).map((item) => {
       return (
-        <div className="property">
-          <div className="property-key">{item.key}:</div>
-          <div className={"property-value" + addTypeClass(item.value)}>
-            {String(item.value)}
+        <>
+          <div className="property">
+            <div className="property-key">{item.key}:</div>
+            <div className={"property-value" + addTypeClass(item.value)}>
+              {String(item.value)}
+            </div>
           </div>
-        </div>
+        </>
       );
     });
   } else {
@@ -50,7 +79,8 @@ const RequestRoute = ({ responseData, className, children, ...props }) => {
       {...props}
     >
       {children}
-      <div className="response">{response}</div>
+      <div className="response mb-3">{response}</div>
+      <ObjectView objectData={mockObject} />
     </div>
   );
 };
