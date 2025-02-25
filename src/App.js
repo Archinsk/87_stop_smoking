@@ -36,6 +36,7 @@ function App() {
     auth: false,
   });
   const [userDataByDays, setUserDataByDays] = useState(null);
+  const [daysOfStat, setDaysOfStat] = useState(7);
   const [smokings, setSmokings] = useState([]);
   const [weights, setweights] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -51,6 +52,7 @@ function App() {
     }
     return;
   }, [userDataByDays]);
+
   const userDataLastDays = useMemo(() => {
     if (userDataByDays) {
       return userDataByDays.filter((day, index) => {
@@ -66,6 +68,7 @@ function App() {
     }
     return;
   }, [userDataByDays]);
+
   const lastDaysSmokings = useMemo(() => {
     if (userDataByDays) {
       return userDataByDays
@@ -74,6 +77,25 @@ function App() {
     }
     return;
   }, [userDataByDays]);
+
+  const lastDaysSmokingsCount = useMemo(() => {
+    if (lastDaysSmokings) {
+      return lastDaysSmokings.map((smokings) => smokings.length);
+    }
+    return;
+  }, [lastDaysSmokings]);
+
+  const lastDaysWeekday = useMemo(() => {
+    if (userDataLastDays) {
+      let formatter = new Intl.DateTimeFormat("ru", {
+        weekday: "short",
+      });
+      return userDataLastDays.map((day) => {
+        return formatter.format(new Date(day.dayStartTimestamp));
+      });
+    }
+    return;
+  }, [userDataLastDays]);
 
   const getRequest = async (requestType, queries) => {
     let url =
@@ -116,6 +138,17 @@ function App() {
     return responseBody;
   };
 
+  const getUserData = async () => {
+    const userDataResponse = await getRequest("user", {
+      userid: 1,
+      days: daysOfStat,
+    });
+    console.log("user");
+    console.log(userDataResponse);
+    setResponse(userDataResponse);
+    setUserDataByDays(userDataResponse.userDataByDays);
+  };
+
   useEffect(() => {
     const checkUserAuth = async () => {
       const authResponse = await getRequest("auth", { userid: 1 });
@@ -133,7 +166,10 @@ function App() {
     };
 
     const getUserData = async () => {
-      const userDataResponse = await getRequest("user", { userid: 1, days: 7 });
+      const userDataResponse = await getRequest("user", {
+        userid: 1,
+        days: daysOfStat,
+      });
       console.log("user");
       console.log(userDataResponse);
       setResponse(userDataResponse);
@@ -154,7 +190,7 @@ function App() {
     if (!isInitApp) {
       initApp();
     }
-  }, [isInitApp]);
+  }, [isInitApp, daysOfStat]);
 
   const resetUser = () => {
     setUser({
@@ -298,25 +334,11 @@ function App() {
   const barChart = {
     config: {
       data: {
-        labels: [
-          "Chrome",
-          "Safari",
-          "Samsung Internet",
-          "Opera",
-          "UC Browser",
-          "Android",
-        ],
+        labels: lastDaysWeekday,
         datasets: [
           {
-            data: [65, 25, 5, 3, 1, 1],
-            backgroundColor: [
-              "#6090C0",
-              "#6060C0",
-              "#9060C0",
-              "#C06060",
-              "#C08F60",
-              "#C0BE60",
-            ],
+            data: lastDaysSmokingsCount,
+            backgroundColor: ["hsl(0, 0%, 50%)"],
           },
         ],
       },
@@ -647,18 +669,33 @@ function App() {
 
           <Bar data={barChart.config.data} />
 
+          <Button
+            onClick={() => {
+              setDaysOfStat(7);
+              getUserData();
+            }}
+          >
+            7 days
+          </Button>
+          <Button
+            onClick={() => {
+              setDaysOfStat(28);
+              getUserData();
+            }}
+          >
+            28 days
+          </Button>
+
           {userDataLastDays &&
             userDataLastDays.map((day, index) => {
               return (
                 <>
-                  <h2>
-                    Today start -{" "}
-                    {String(new Date(userDataToday.dayStartTimestamp))}
-                  </h2>
                   <div className="one-day">
                     <div>
-                      dayStart - {day.dayStartTimestamp} -{" "}
-                      {String(new Date(day.dayStartTimestamp))}
+                      <b>
+                        dayStart - {day.dayStartTimestamp} -{" "}
+                        {String(new Date(day.dayStartTimestamp))}
+                      </b>
                     </div>
                     {day.smokings.map((smoking) => {
                       return (
@@ -672,6 +709,24 @@ function App() {
                 </>
               );
             })}
+          {userDataToday && (
+            <div className="one-day">
+              <div>
+                <b>
+                  todayDayStart - {userDataToday.dayStartTimestamp} -{" "}
+                  {String(new Date(userDataToday.dayStartTimestamp))}
+                </b>
+              </div>
+              {userDataToday.smokings.map((smoking) => {
+                return (
+                  <div key={smoking.id}>
+                    {smoking.type} - {smoking.timestamp} -{" "}
+                    {String(new Date(smoking.timestamp))}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </SmokingRoute>
       )}
       {route === "weight-route" && (

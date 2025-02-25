@@ -54,7 +54,10 @@ if ($_SERVER[REQUEST_METHOD] == 'GET') {
       $timeZoneOffset = $userDB->time_zone_offset;
       $timeZoneOffsetSec = $timeZoneOffset * 60;
       $userZoneRequestTimestamp = $_SERVER['REQUEST_TIME'] + $timeZoneOffset * 60;
-      $startOfToday = $_SERVER['REQUEST_TIME'] - $_SERVER['REQUEST_TIME'] % 86400;
+      $startOfToday = $_SERVER['REQUEST_TIME'] - $_SERVER['REQUEST_TIME'] % 86400 + $timeZoneOffsetSec;
+      if ($timeZoneOffset < 0) {
+        $startOfToday = $startOfToday + 86400;
+      };
 
       $days = $queries['days'];
 
@@ -94,7 +97,12 @@ if ($_SERVER[REQUEST_METHOD] == 'GET') {
       $response->session = $_SESSION;
       $response->offset = $timeZoneOffset;
       $response->requestTime = $_SERVER['REQUEST_TIME'];
+      $response->time = time();
       $response->userDataByDays = $userDataByDays;
+      $response->start = $startOfToday;
+      $response->startYest = $startOfToday - 1 * 86400;
+      $response->startplus = $_SERVER['REQUEST_TIME'] + $timeZoneOffsetSec - ($_SERVER['REQUEST_TIME'] + $timeZoneOffsetSec) % 86400;
+      $response->startminus = $_SERVER['REQUEST_TIME'] - $timeZoneOffsetSec - ($_SERVER['REQUEST_TIME'] - $timeZoneOffsetSec) % 86400;
 	  } else {
 	    $response->auth = false;
 	  }; 
