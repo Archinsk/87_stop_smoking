@@ -52,23 +52,22 @@ if ($_SERVER[REQUEST_METHOD] == 'GET') {
   if ($_SERVER[PATH_INFO] == '/user') {
     if ($userDB) {
       $timeZoneOffset = $userDB->time_zone_offset;
-      $requestTimeStamp = $_SERVER['REQUEST_TIME'];
-      $timeFromTodayStart = ($_SERVER['REQUEST_TIME'] - $timeZoneOffset * 60) % 86400;
-      $days = $queries['days'];
-      $requestTimeStamp = $_SERVER['REQUEST_TIME'];
-      $timeFromTodayStart = $_SERVER['REQUEST_TIME'] % 86400;
+      $timeZoneOffsetSec = $timeZoneOffset * 60;
+      $userZoneRequestTimestamp = $_SERVER['REQUEST_TIME'] + $timeZoneOffset * 60;
       $startOfToday = $_SERVER['REQUEST_TIME'] - $_SERVER['REQUEST_TIME'] % 86400;
+
+      $days = $queries['days'];
 
       $userDataByDays = array();
       for ($i = $days; $i >= 0; $i--) {
         $oneDaySmokingsDB = array();
         $oneDayWeightsDB = array();
         if ($i != 0) {
-          $oneDaySmokingsDB = R::find('smokings', 'userid = ? AND TIMESTAMP >= ? AND TIMESTAMP < ? ORDER BY timestamp DESC', array($userDB->id, $startOfToday - $i * 86400 + $timeZoneOffset * 60, $startOfToday - ($i - 1) * 86400 + $timeZoneOffset * 60));
-          $oneDayWeightsDB = R::find('weights', 'userid = ? AND TIMESTAMP >= ? AND TIMESTAMP < ? ORDER BY timestamp DESC', array($userDB->id, $startOfToday - $i * 86400 + $timeZoneOffset * 60, $startOfToday - ($i - 1) * 86400 + $timeZoneOffset * 60));
+          $oneDaySmokingsDB = R::find('smokings', 'userid = ? AND TIMESTAMP >= ? AND TIMESTAMP < ? ORDER BY timestamp DESC', array($userDB->id, $startOfToday - $i * 86400, $startOfToday - ($i - 1) * 86400));
+          $oneDayWeightsDB = R::find('weights', 'userid = ? AND TIMESTAMP >= ? AND TIMESTAMP < ? ORDER BY timestamp DESC', array($userDB->id, $startOfToday - $i * 86400, $startOfToday - ($i - 1) * 86400));
         } else {
-          $oneDaySmokingsDB = R::find('smokings', 'userid = ? AND TIMESTAMP >= ? ORDER BY timestamp DESC', array($userDB->id, $startOfToday - $i * 86400 + $timeZoneOffset * 60));
-          $oneDayWeightsDB = R::find('weights', 'userid = ? AND TIMESTAMP >= ? ORDER BY timestamp DESC', array($userDB->id, $startOfToday - $i * 86400 + $timeZoneOffset * 60));
+          $oneDaySmokingsDB = R::find('smokings', 'userid = ? AND TIMESTAMP >= ? ORDER BY timestamp DESC', array($userDB->id, $startOfToday - $i * 86400));
+          $oneDayWeightsDB = R::find('weights', 'userid = ? AND TIMESTAMP >= ? ORDER BY timestamp DESC', array($userDB->id, $startOfToday - $i * 86400));
         };
         $oneDaySmokings = array();
         foreach( $oneDaySmokingsDB as $smokingItem) {
@@ -93,6 +92,8 @@ if ($_SERVER[REQUEST_METHOD] == 'GET') {
       };
 
       $response->session = $_SESSION;
+      $response->offset = $timeZoneOffset;
+      $response->requestTime = $_SERVER['REQUEST_TIME'];
       $response->userDataByDays = $userDataByDays;
 	  } else {
 	    $response->auth = false;

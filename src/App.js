@@ -1,4 +1,4 @@
-import { useContext, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import "./App.css";
 import Button from "./components/Button/Button";
 import {
@@ -21,8 +21,10 @@ import Alert from "./components/Alert/Alert";
 Chart.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 function App() {
+  const [isInitApp, setIsInitApp] = useState(false);
   const [route, setRoute] = useState("loading-route");
-  const [screen, setScreen] = useState("main");
+  const defaultGuestRoute = "auth-route";
+  const defaultAuthRoute = "smoking-route";
   const [user, setUser] = useState({
     login: "",
     password: "",
@@ -31,18 +33,32 @@ function App() {
     errorText: "",
     weight: "",
     name: "",
+    auth: false,
   });
+  const [userDataByDays, setUserDataByDays] = useState(null);
   const [smokings, setSmokings] = useState([]);
   const [weights, setweights] = useState([]);
-  const [checkUserAuth, setCheckUserAuth] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isNotification, setIsNotification] = useState(false);
-  const [isAuthUser, setIsAuthUser] = useState(false);
   const [showSettings, setShowSettings] = useState(true);
   const [geoPosition, setGeoPosition] = useState("geo");
-  const [userDataByDays, setUserDataByDays] = useState(null);
+
   const [chart, setChart] = useState(false);
   const [response, setResponse] = useState(null);
+
+  const userDataToday = useMemo(() => {
+    if (userDataByDays) {
+      return userDataByDays[userDataByDays.length - 1];
+    }
+    return;
+  }, [userDataByDays]);
+  const userDataLastDays = useMemo(() => {
+    if (userDataByDays) {
+      return userDataByDays.filter((day, index) => {
+        return index !== userDataByDays.length - 1;
+      });
+    }
+    return;
+  }, [userDataByDays]);
 
   const todaySmokings = useMemo(() => {
     if (userDataByDays) {
@@ -50,14 +66,95 @@ function App() {
     }
     return;
   }, [userDataByDays]);
+  const lastDaysSmokings = useMemo(() => {
+    if (userDataByDays) {
+      return userDataByDays
+        .filter((day, index) => index !== userDataByDays.length - 1)
+        .map((day, index) => day.smokings);
+    }
+    return;
+  }, [userDataByDays]);
 
-  const validateAuthForm = () => {
-    console.log("Валидация авторизации");
+  const getRequest = async (requestType, queries) => {
+    let url =
+      "https://www.d-skills.ru/87_stop_smoking/php/stopsmokingrestapi.php";
+    if (requestType) {
+      url += "/" + requestType;
+    }
+    if (queries) {
+      url += "?";
+      for (let key in queries) {
+        url += key + "=" + queries[key] + "&";
+      }
+      url = url.slice(0, -1);
+    }
+    const responseBody = await fetch(url)
+      .then((response) => response.json())
+      .then((json) => {
+        return json;
+      });
+    return responseBody;
   };
 
-  const validateRegForm = () => {
-    console.log("Валидация регистрации");
+  const postRequest = async () => {
+    const responseBody = await fetch(
+      "https://www.d-skills.ru/87_stop_smoking/php/stopsmokingrestapi.php/smoking",
+      {
+        method: "POST",
+        body: {},
+        headers: {
+          "Content-type": "application/json; charset=UTF-8",
+        },
+      }
+    )
+      .then((response) => response.json())
+      .then((json) => {
+        console.log(json);
+        setResponse(json);
+        return json;
+      });
+    return responseBody;
   };
+
+  useEffect(() => {
+    const checkUserAuth = async () => {
+      const authResponse = await getRequest("auth", { userid: 1 });
+      console.log("auth");
+      console.log(authResponse);
+      setResponse(authResponse);
+      setUser({ ...user, auth: authResponse.auth });
+      if (authResponse.auth) {
+        setUser({ ...user, name: authResponse.user.name });
+        return true;
+      } else {
+        setUser({ ...user, name: "" });
+        return;
+      }
+    };
+
+    const getUserData = async () => {
+      const userDataResponse = await getRequest("user", { userid: 1, days: 7 });
+      console.log("user");
+      console.log(userDataResponse);
+      setResponse(userDataResponse);
+      setUserDataByDays(userDataResponse.userDataByDays);
+    };
+
+    const initApp = async () => {
+      const isAuth = await checkUserAuth();
+      if (isAuth) {
+        await getUserData();
+        setRoute(defaultAuthRoute);
+      } else {
+        setRoute(defaultGuestRoute);
+      }
+      setIsInitApp(true);
+    };
+
+    if (!isInitApp) {
+      initApp();
+    }
+  }, [isInitApp]);
 
   const resetUser = () => {
     setUser({
@@ -111,25 +208,8 @@ function App() {
       .then((response) => response.json())
       .then((json) => {
         console.log(json);
-        setScreen("main");
+        setRoute(defaultAuthRoute);
         handleGetUserData();
-      });
-  };
-
-  const handleCheckUserAuthentication = () => {
-    fetch("https://www.d-skills.ru/87_stop_smoking/php/checkauth.php?userid=1")
-      .then((response) => response.json())
-      .then((json) => {
-        console.log(json);
-        setUser({ ...user, name: json.user.name });
-        if (json.user) {
-          setRoute("smoking-route");
-          handleGetUserData();
-        }
-        if (json.error) {
-          setRoute("auth-route");
-        }
-        setCheckUserAuth(true);
       });
   };
 
@@ -215,9 +295,6 @@ function App() {
       .then((json) => console.log(json));
   };
 
-  if (!checkUserAuth) {
-    handleCheckUserAuthentication();
-  }
   const barChart = {
     config: {
       data: {
@@ -247,45 +324,6 @@ function App() {
   };
   const createChart = async () => {
     new Chart(document.getElementById("chart01"), barChart.config);
-  };
-
-  const getRequest = (requestType, queries) => {
-    let url =
-      "https://www.d-skills.ru/87_stop_smoking/php/stopsmokingrestapi.php";
-    if (requestType) {
-      url += "/" + requestType;
-    }
-    if (queries) {
-      url += "?";
-      for (let key in queries) {
-        url += key + "=" + queries[key] + "&";
-      }
-      url = url.slice(0, -1);
-    }
-    fetch(url)
-      .then((response) => response.json())
-      .then((json) => {
-        console.log(json);
-        setResponse(json);
-      });
-  };
-
-  const postRequest = () => {
-    fetch(
-      "https://www.d-skills.ru/87_stop_smoking/php/stopsmokingrestapi.php/smoking",
-      {
-        method: "POST",
-        body: {},
-        headers: {
-          "Content-type": "application/json; charset=UTF-8",
-        },
-      }
-    )
-      .then((response) => response.json())
-      .then((json) => {
-        console.log(json);
-        setResponse(json);
-      });
   };
 
   return (
@@ -423,7 +461,7 @@ function App() {
               <div>longitude : {geoPosition.long}</div>
           </div> */}
           <Alert className="mb-3">
-            {userDataByDays && (
+            {userDataByDays && userDataByDays && (
               <div>
                 Last smoking:{" "}
                 {String(
@@ -608,6 +646,32 @@ function App() {
           )}
 
           <Bar data={barChart.config.data} />
+
+          {userDataLastDays &&
+            userDataLastDays.map((day, index) => {
+              return (
+                <>
+                  <h2>
+                    Today start -{" "}
+                    {String(new Date(userDataToday.dayStartTimestamp))}
+                  </h2>
+                  <div className="one-day">
+                    <div>
+                      dayStart - {day.dayStartTimestamp} -{" "}
+                      {String(new Date(day.dayStartTimestamp))}
+                    </div>
+                    {day.smokings.map((smoking) => {
+                      return (
+                        <div key={smoking.id}>
+                          {smoking.type} - {smoking.timestamp} -{" "}
+                          {String(new Date(smoking.timestamp))}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              );
+            })}
         </SmokingRoute>
       )}
       {route === "weight-route" && (
