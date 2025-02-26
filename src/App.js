@@ -14,9 +14,9 @@ import {
 import { Bar, Bubble } from "react-chartjs-2";
 import AuthRoute from "./routes/AuthRoute/AuthRoute";
 import RegistrationRoute from "./routes/RegistrationRoute/RegistrationRoute";
-import SmokingRoute from "./routes/SmokingRoute/SmokingRoute";
 import WeightRoute from "./routes/WeightRoute/WeightRoute";
 import RequestRoute from "./routes/RequestRoute/RequestRoute";
+/* import SmokingRoute from "./routes/SmokingRoute/SmokingRoute"; */
 import Alert from "./components/Alert/Alert";
 
 Chart.register(
@@ -30,6 +30,13 @@ Chart.register(
 );
 
 function App() {
+  const [authForm, setAuthForm] = useState({ login: "", password: "" });
+  const [regForm, setRegForm] = useState({
+    login: "",
+    password: "",
+    passwordConfirmation: "",
+  });
+  const [weightForm, setWeightForm] = useState({ weight: "" });
   const [isInitApp, setIsInitApp] = useState(false);
   const [route, setRoute] = useState("loading-route");
   const defaultGuestRoute = "auth-route";
@@ -47,6 +54,7 @@ function App() {
   const [userDataByDays, setUserDataByDays] = useState(null);
   const [daysOfStat, setDaysOfStat] = useState(7);
   const [weekdaysStat, setWeekdaysStat] = useState(4);
+  const [weekdaySmokings, setWeekdaySmokings] = useState(null);
   const [smokings, setSmokings] = useState([]);
   const [weights, setweights] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -55,6 +63,19 @@ function App() {
 
   const [chart, setChart] = useState(false);
   const [response, setResponse] = useState(null);
+
+  const convertTimestampToTimestampFromDayStart = (timestamp) => {
+    return timestamp % 86400000;
+  };
+
+  const convertMsFromDayStartToHMS = (ts) => {
+    let formatter = new Intl.DateTimeFormat("ru", {
+      hour: "numeric",
+      minute: "numeric",
+      second: "numeric",
+    });
+    return formatter.format(new Date(ts));
+  };
 
   const userDataToday = useMemo(() => {
     if (userDataByDays) {
@@ -106,6 +127,32 @@ function App() {
     }
     return;
   }, [userDataLastDays]);
+
+  const bubbleChartData = useMemo(() => {
+    if (weekdaySmokings) {
+      console.log("weekdaySmokings");
+      console.log(weekdaySmokings);
+      return weekdaySmokings
+        .map((day) => {
+          console.log("day");
+          console.log(day);
+          if (day.smokings.length) {
+            return day.smokings.map((smoking) => {
+              console.log("smoking");
+              console.log(smoking);
+
+              return {
+                ts: convertTimestampToTimestampFromDayStart(smoking.timestamp),
+                time: convertMsFromDayStartToHMS(
+                  convertTimestampToTimestampFromDayStart(smoking.timestamp)
+                ),
+              };
+            });
+          }
+        })
+        .filter((item) => item);
+    }
+  }, [weekdaySmokings]);
 
   const getRequest = async (requestType, queries) => {
     let url =
@@ -185,6 +232,7 @@ function App() {
       console.log(userDataResponse);
       setResponse(userDataResponse);
       setUserDataByDays(userDataResponse.userDataByDays);
+      setWeekdaySmokings(userDataResponse.weekdaySmokings);
     };
 
     const initApp = async () => {
@@ -367,27 +415,20 @@ function App() {
     },
   };
 
-  const data = {
-    datasets: [
-      {
-        label: "Red dataset",
-        data: [
-          { x: 10, y: 10, r: 5 },
-          { x: 20, y: 20, r: 5 },
-          { x: 30, y: 30, r: 5 },
-        ],
+  const data = bubbleChartData && {
+    datasets: bubbleChartData.map((day, index) => {
+      return {
+        label: "Date" + index,
+        data: day.map((smoking) => {
+          return {
+            x: smoking.ts * 0.001,
+            y: (index + 1) * 10,
+            r: 20,
+          };
+        }),
         backgroundColor: "rgba(255, 99, 132, 0.5)",
-      },
-      {
-        label: "Blue dataset",
-        data: [
-          { x: 15, y: 15, r: 5 },
-          { x: 25, y: 25, r: 5 },
-          { x: 35, y: 35, r: 5 },
-        ],
-        backgroundColor: "rgba(53, 162, 235, 0.5)",
-      },
-    ],
+      };
+    }),
   };
 
   return (
@@ -404,469 +445,78 @@ function App() {
         <div>User name: {user.name ? user.name : "empty"}</div>
       </Alert>
       {route === "auth-route" && (
-        <AuthRoute>
-          <h2>Авторизация</h2>
-          <form className="mb-3">
-            <div className="form-group">
-              <label htmlFor="authLogin" className="form-label">
-                Логин
-              </label>
-              <input
-                className="form-control"
-                id="authLogin"
-                value={user.login}
-                onChange={(e) => setUser({ ...user, login: e.target.value })}
-              />
-              <div id="emailHelp" className="form-text">
-                Help text
-              </div>
-            </div>
-            <div className="form-group">
-              <label htmlFor="authPassword" className="form-label">
-                Пароль
-              </label>
-              <input
-                type="password"
-                className="form-control"
-                id="authPassword"
-                value={user.password}
-                onChange={(e) => setUser({ ...user, password: e.target.value })}
-              />
-              <div id="emailHelp" className="form-text">
-                Help text
-              </div>
-            </div>
-          </form>
-          <div>
-            <Button type="button">Отмена</Button>
-            <Button type="button" onClick={handleAuthenticateUser}>
-              Войти
-            </Button>
-            <Button
-              type="button"
-              onClick={() => {
-                setRoute("registration-route");
-              }}
-            >
-              Зарегистрироваться
-            </Button>
-          </div>
-        </AuthRoute>
+        <AuthRoute
+          form={authForm}
+          onChangeLogin={(e) => {
+            setAuthForm({ ...authForm, login: e.target.value });
+          }}
+          onChangePassword={(e) => {
+            setAuthForm({ ...authForm, password: e.target.value });
+          }}
+          onAuthUser={() => {
+            console.log("unregistred onAuthUser");
+          }}
+          onGoToRegistration={() => {
+            setRoute("registration-route");
+          }}
+        />
       )}
       {route === "registration-route" && (
-        <RegistrationRoute>
-          <h2>Регистрация</h2>
-          <form className="mb-3">
-            <div className="form-group">
-              <label htmlFor="registrationLogin" className="form-label">
-                Логин
-              </label>
-              <input
-                className="form-control"
-                id="registrationLogin"
-                value={user.login}
-                onChange={(e) => setUser({ ...user, login: e.target.value })}
-              />
-              <div id="registrationLoginHelp" className="form-text">
-                Help text
-              </div>
-            </div>
-            <div className="form-group">
-              <label htmlFor="registrationPassword" className="form-label">
-                Пароль
-              </label>
-              <input
-                type="password"
-                className="form-control"
-                id="registrationPassword"
-                value={user.password}
-                onChange={(e) => setUser({ ...user, password: e.target.value })}
-              />
-              <div id="registrationPasswordHelp" className="form-text">
-                Help text
-              </div>
-            </div>
-            <div className="form-group">
-              <label
-                htmlFor="registrationPasswordConfirmation"
-                className="form-label"
-              >
-                Подтверждение пароля
-              </label>
-              <input
-                type="password"
-                className="form-control"
-                id="registrationPasswordConfirmation"
-                value={user.passwordConfirmation}
-                onChange={(e) =>
-                  setUser({ ...user, passwordConfirmation: e.target.value })
-                }
-              />
-              <div
-                id="registrationPasswordConfirmationHelp"
-                className="form-text"
-              >
-                Help text
-              </div>
-            </div>
-          </form>
-          <div>
-            <Button type="button">Отмена</Button>
-            <Button type="button" onClick={handleRegistrateUser}>
-              Регистрация
-            </Button>
-          </div>
-        </RegistrationRoute>
-      )}
-      {route === "smoking-route" && (
-        <SmokingRoute>
-          {/* <div>
-              <div>latitude : {geoPosition.lat}</div>
-              <div>longitude : {geoPosition.long}</div>
-          </div> */}
-          <Alert className="mb-3">
-            {userDataByDays &&
-              userDataByDays[userDataByDays.length - 1].smokings.length && (
-                <div>
-                  Last smoking:{" "}
-                  {String(
-                    new Date(
-                      userDataByDays[
-                        userDataByDays.length - 1
-                      ].smokings[0].timestamp
-                    )
-                  )}
-                </div>
-              )}
-          </Alert>
-          <div className="mb-3">
-            <Button
-              type="button"
-              onClick={() => {
-                handleSetSmoking("cigarette");
-              }}
-            >
-              Cigarette
-            </Button>
-            <Button
-              type="button"
-              onClick={() => {
-                handleSetSmoking("stick");
-              }}
-            >
-              Stick
-            </Button>
-          </div>
-          {todaySmokings && (
-            <div className="cigarette-box">
-              <div className="d-flex">
-                <div className="circle-background">
-                  <div
-                    className={
-                      todaySmokings.length >= 1 ? "circle smoked" : "circle"
-                    }
-                  ></div>
-                </div>
-                <div className="circle-background">
-                  <div
-                    className={
-                      todaySmokings.length >= 2 ? "circle smoked" : "circle"
-                    }
-                  ></div>
-                </div>
-                <div className="circle-background">
-                  <div
-                    className={
-                      todaySmokings.length >= 3 ? "circle smoked" : "circle"
-                    }
-                  ></div>
-                </div>
-                <div className="circle-background">
-                  <div
-                    className={
-                      todaySmokings.length >= 4 ? "circle smoked" : "circle"
-                    }
-                  ></div>
-                </div>
-                <div className="circle-background">
-                  <div
-                    className={
-                      todaySmokings.length >= 5 ? "circle smoked" : "circle"
-                    }
-                  ></div>
-                </div>
-                <div className="circle-background">
-                  <div
-                    className={
-                      todaySmokings.length >= 6 ? "circle smoked" : "circle"
-                    }
-                  ></div>
-                </div>
-                <div className="circle-background">
-                  <div
-                    className={
-                      todaySmokings.length >= 7 ? "circle smoked" : "circle"
-                    }
-                  ></div>
-                </div>
-              </div>
-              <div className="d-flex">
-                <div className="hole"></div>
-                <div className="circle-background">
-                  <div
-                    className={
-                      todaySmokings.length >= 8 ? "circle smoked" : "circle"
-                    }
-                  ></div>
-                </div>
-                <div className="circle-background">
-                  <div
-                    className={
-                      todaySmokings.length >= 9 ? "circle smoked" : "circle"
-                    }
-                  ></div>
-                </div>
-                <div className="circle-background">
-                  <div
-                    className={
-                      todaySmokings.length >= 10 ? "circle smoked" : "circle"
-                    }
-                  ></div>
-                </div>
-                <div className="circle-background">
-                  <div
-                    className={
-                      todaySmokings.length >= 11 ? "circle smoked" : "circle"
-                    }
-                  ></div>
-                </div>
-                <div className="circle-background">
-                  <div
-                    className={
-                      todaySmokings.length >= 12 ? "circle smoked" : "circle"
-                    }
-                  ></div>
-                </div>
-                <div className="circle-background">
-                  <div
-                    className={
-                      todaySmokings.length >= 13 ? "circle smoked" : "circle"
-                    }
-                  ></div>
-                </div>
-                <div className="hole"></div>
-              </div>
-              <div className="d-flex">
-                <div className="circle-background">
-                  <div
-                    className={
-                      todaySmokings.length >= 14 ? "circle smoked" : "circle"
-                    }
-                  ></div>
-                </div>
-                <div className="circle-background">
-                  <div
-                    className={
-                      todaySmokings.length >= 15 ? "circle smoked" : "circle"
-                    }
-                  ></div>
-                </div>
-                <div className="circle-background">
-                  <div
-                    className={
-                      todaySmokings.length >= 16 ? "circle smoked" : "circle"
-                    }
-                  ></div>
-                </div>
-                <div className="circle-background">
-                  <div
-                    className={
-                      todaySmokings.length >= 17 ? "circle smoked" : "circle"
-                    }
-                  ></div>
-                </div>
-                <div className="circle-background">
-                  <div
-                    className={
-                      todaySmokings.length >= 18 ? "circle smoked" : "circle"
-                    }
-                  ></div>
-                </div>
-                <div className="circle-background">
-                  <div
-                    className={
-                      todaySmokings.length >= 19 ? "circle smoked" : "circle"
-                    }
-                  ></div>
-                </div>
-                <div className="circle-background">
-                  <div
-                    className={
-                      todaySmokings.length >= 20 ? "circle smoked" : "circle"
-                    }
-                  ></div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <Bar data={barChart.config.data} />
-          <Bubble options={options} data={data} />
-          <Button
-            onClick={() => {
-              setDaysOfStat(7);
-              getUserData();
-            }}
-          >
-            7 days
-          </Button>
-          <Button
-            onClick={() => {
-              setDaysOfStat(28);
-              getUserData();
-            }}
-          >
-            28 days
-          </Button>
-
-          {userDataLastDays &&
-            userDataLastDays.map((day, index) => {
-              return (
-                <>
-                  <div className="one-day">
-                    <div>
-                      <b>
-                        dayStart - {day.dayStartTimestamp} -{" "}
-                        {String(new Date(day.dayStartTimestamp))}
-                      </b>
-                    </div>
-                    {day.smokings.map((smoking) => {
-                      return (
-                        <div key={smoking.id}>
-                          {smoking.type} - {smoking.timestamp} -{" "}
-                          {String(new Date(smoking.timestamp))}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </>
-              );
-            })}
-          {userDataToday && (
-            <div className="one-day">
-              <div>
-                <b>
-                  todayDayStart - {userDataToday.dayStartTimestamp} -{" "}
-                  {String(new Date(userDataToday.dayStartTimestamp))}
-                </b>
-              </div>
-              {userDataToday.smokings.map((smoking) => {
-                return (
-                  <div key={smoking.id}>
-                    {smoking.type} - {smoking.timestamp} -{" "}
-                    {String(new Date(smoking.timestamp))}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </SmokingRoute>
+        <RegistrationRoute
+          form={regForm}
+          onChangeLogin={(e) => {
+            setRegForm({ ...regForm, login: e.target.value });
+          }}
+          onChangePassword={(e) => {
+            setRegForm({ ...regForm, password: e.target.value });
+          }}
+          onChangePasswordConfirmation={(e) => {
+            setRegForm({ ...regForm, passwordConfirmation: e.target.value });
+          }}
+          onCancelRegistration={() => {
+            console.log("unregistred onCancelRegistration");
+          }}
+          onRegistrateUser={() => {
+            console.log("unregistred onRegistrateUser");
+          }}
+        />
       )}
       {route === "weight-route" && (
-        <WeightRoute>
-          <h2>Вес</h2>
-          <form className="mb-3">
-            <div className="form-group">
-              <label htmlFor="userWeight" className="form-label">
-                Вес
-              </label>
-              <input
-                className="form-control"
-                id="userWeight"
-                value={user.weight}
-                onChange={(e) => setUser({ ...user, weight: e.target.value })}
-              />
-              <div id="registrationLoginHelp" className="form-text">
-                Help text
-              </div>
-            </div>
-          </form>
-          <div>
-            <Button type="button">Отмена</Button>
-            <Button type="button" onClick={handleSetUserWeight}>
-              Отправить
-            </Button>
-          </div>
-
-          <h3>Веса</h3>
-          {weights.length && (
-            <ul>
-              {weights.map((item) => {
-                return (
-                  <li key={item.id}>
-                    {item.weight} - {String(new Date(item.timestamp))}
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </WeightRoute>
+        <WeightRoute
+          form={weightForm}
+          weights={weights}
+          onChangeWeight={() => {
+            console.log("unregistred onChangeWeight");
+          }}
+          onResetWeight={() => {
+            console.log("unregistred onResetWeight");
+          }}
+          onSetWeight={() => {
+            console.log("unregistred onSetWeight");
+          }}
+        />
       )}
       {route === "request-route" && (
-        <RequestRoute responseData={response}>
-          <div className="mb-3">
-            <Button onClick={getRequest}>GET</Button>
-            <Button onClick={postRequest}>POST</Button>
-            <Button
-              onClick={() => {
-                getRequest("auth", { userid: 1 });
-              }}
-            >
-              CheckAuth
-            </Button>
-            <Button
-              onClick={() => {
-                getRequest("user", { userid: 1, days: 7 });
-              }}
-            >
-              GetUser
-            </Button>
-            <Button
-              onClick={() => {
-                getRequest("logout");
-              }}
-            >
-              LogOut
-            </Button>
-            <Button
-              onClick={() => {
-                getRequest("userid");
-              }}
-            >
-              UserId
-            </Button>
-            <Button onClick={handleGetUserData}>GetUserData</Button>
-            {/* <Button onClick={handleGetGeoPosition}>GetGeo</Button> */}
-          </div>
-        </RequestRoute>
+        <RequestRoute
+          responseData={response}
+          onGetRequest={getRequest}
+          onPostRequest={postRequest}
+          onCheckAuth={() => {
+            getRequest("auth", { userid: 1 });
+          }}
+          onGetUser={() => {
+            getRequest("user", {
+              userid: 1,
+              days: daysOfStat,
+              weekdays: weekdaysStat,
+            });
+          }}
+          onLogout={() => {
+            getRequest("logout");
+          }}
+        />
       )}
-
-      {/* <div className="alert">
-        Для достижения результата начните фиксировать каждую выкуриваемую
-        сигарету и стик в момент начала курения. Рекомендации появятся после
-        трех дней ведения сттистики
-      </div>
-      <div className="alert">
-        Рекомендуется исключить курение в период с ... по ...
-      </div>
-      <div className="alert">
-        В течение ... дней выкуривается не более ... сигарет/стиков
-      </div>
-      <div className="alert">
-        Съэкономлено ... рублей на покупке сигарет/стиков, ... минут жизни,
-        ранее затрачиваемых на курение
-      </div>
-      <div className="alert">Вы не курите ... дней</div> */}
+      {/* {route === "smoking-route" && <SmokingRoute></SmokingRoute>} */}
     </div>
   );
 }
