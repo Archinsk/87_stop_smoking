@@ -9,8 +9,9 @@ import {
   Title,
   Tooltip,
   Legend,
+  PointElement,
 } from "chart.js";
-import { Bar } from "react-chartjs-2";
+import { Bar, Bubble } from "react-chartjs-2";
 import AuthRoute from "./routes/AuthRoute/AuthRoute";
 import RegistrationRoute from "./routes/RegistrationRoute/RegistrationRoute";
 import SmokingRoute from "./routes/SmokingRoute/SmokingRoute";
@@ -18,7 +19,15 @@ import WeightRoute from "./routes/WeightRoute/WeightRoute";
 import RequestRoute from "./routes/RequestRoute/RequestRoute";
 import Alert from "./components/Alert/Alert";
 
-Chart.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+Chart.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  PointElement
+);
 
 function App() {
   const [isInitApp, setIsInitApp] = useState(false);
@@ -37,6 +46,7 @@ function App() {
   });
   const [userDataByDays, setUserDataByDays] = useState(null);
   const [daysOfStat, setDaysOfStat] = useState(7);
+  const [weekdaysStat, setWeekdaysStat] = useState(4);
   const [smokings, setSmokings] = useState([]);
   const [weights, setweights] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -169,6 +179,7 @@ function App() {
       const userDataResponse = await getRequest("user", {
         userid: 1,
         days: daysOfStat,
+        weekdays: weekdaysStat,
       });
       console.log("user");
       console.log(userDataResponse);
@@ -348,6 +359,37 @@ function App() {
     new Chart(document.getElementById("chart01"), barChart.config);
   };
 
+  const options = {
+    scales: {
+      y: {
+        beginAtZero: true,
+      },
+    },
+  };
+
+  const data = {
+    datasets: [
+      {
+        label: "Red dataset",
+        data: [
+          { x: 10, y: 10, r: 5 },
+          { x: 20, y: 20, r: 5 },
+          { x: 30, y: 30, r: 5 },
+        ],
+        backgroundColor: "rgba(255, 99, 132, 0.5)",
+      },
+      {
+        label: "Blue dataset",
+        data: [
+          { x: 15, y: 15, r: 5 },
+          { x: 25, y: 25, r: 5 },
+          { x: 35, y: 35, r: 5 },
+        ],
+        backgroundColor: "rgba(53, 162, 235, 0.5)",
+      },
+    ],
+  };
+
   return (
     <div className="app">
       {/* <span className="material-icons">smoke_free</span> Stop Smoking
@@ -483,18 +525,19 @@ function App() {
               <div>longitude : {geoPosition.long}</div>
           </div> */}
           <Alert className="mb-3">
-            {userDataByDays && userDataByDays && (
-              <div>
-                Last smoking:{" "}
-                {String(
-                  new Date(
-                    userDataByDays[
-                      userDataByDays.length - 1
-                    ].smokings[0].timestamp
-                  )
-                )}
-              </div>
-            )}
+            {userDataByDays &&
+              userDataByDays[userDataByDays.length - 1].smokings.length && (
+                <div>
+                  Last smoking:{" "}
+                  {String(
+                    new Date(
+                      userDataByDays[
+                        userDataByDays.length - 1
+                      ].smokings[0].timestamp
+                    )
+                  )}
+                </div>
+              )}
           </Alert>
           <div className="mb-3">
             <Button
@@ -668,7 +711,7 @@ function App() {
           )}
 
           <Bar data={barChart.config.data} />
-
+          <Bubble options={options} data={data} />
           <Button
             onClick={() => {
               setDaysOfStat(7);
