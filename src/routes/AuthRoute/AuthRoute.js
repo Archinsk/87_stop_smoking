@@ -10,10 +10,9 @@ const AuthRoute = ({
   onAuthUser,
   onGoToRegistration,
   className,
-  ...props
 }) => {
   return (
-    <div className={`auth-route${className ? " " + className : ""}`} {...props}>
+    <div className={`auth-route${className ? " " + className : ""}`}>
       <h2>Авторизация</h2>
       <form className="mb-3">
         <Input

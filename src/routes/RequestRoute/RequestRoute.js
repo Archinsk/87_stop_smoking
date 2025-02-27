@@ -11,13 +11,9 @@ const RequestRoute = ({
   onGetUser,
   onLogout,
   className,
-  ...props
 }) => {
   return (
-    <div
-      className={`request-route${className ? " " + className : ""}`}
-      {...props}
-    >
+    <div className={`request-route${className ? " " + className : ""}`}>
       <div className="mb-3">
         <Button onClick={onGetRequest}>GET</Button>
         <Button onClick={onPostRequest}>POST</Button>

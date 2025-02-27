@@ -11,13 +11,9 @@ const RegistrationRoute = ({
   onCancelRegistration,
   onRegistrateUser,
   className,
-  ...props
 }) => {
   return (
-    <div
-      className={`registration-route${className ? " " + className : ""}`}
-      {...props}
-    >
+    <div className={`registration-route${className ? " " + className : ""}`}>
       <h2>Регистрация</h2>
       <form className="mb-3">
         <Input

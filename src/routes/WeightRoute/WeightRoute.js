@@ -10,13 +10,9 @@ const WeightRoute = ({
   onResetWeight,
   onSetWeight,
   className,
-  ...props
 }) => {
   return (
-    <div
-      className={`weight-route${className ? " " + className : ""}`}
-      {...props}
-    >
+    <div className={`weight-route${className ? " " + className : ""}`}>
       <h2>Вес</h2>
       <form className="mb-3">
         <Input

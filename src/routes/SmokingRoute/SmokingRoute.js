@@ -1,86 +1,149 @@
-import React from "react";
+import React, { useMemo } from "react";
 import "./SmokingRoute.css";
+import Input from "../../components/Input/Input";
+import Button from "../../components/Button/Button";
+import CigarettesPack from "../../components/CigarettesPack/CigarettesPack";
+import Alert from "../../components/Alert/Alert";
+import { Bar, Bubble } from "react-chartjs-2";
+import {
+  Chart,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  PointElement,
+} from "chart.js";
+import Table from "../../components/Table/Table";
 
-const SmokingRoute = ({ className, children, ...props }) => {
+const SmokingRoute = ({
+  form,
+  lastSmokingDate,
+  userDataLastDays,
+  userDataByWeekday,
+  handleSetSmoking,
+  onChangeStopSmokingStart,
+  onChangeStopSmokingFinish,
+  onChangeSmokingsCount,
+  onChangeCigarettesPackPrice,
+  onResetForm,
+  onSetStopSmoking,
+  className,
+}) => {
+  const lastDaysWeekday = useMemo(() => {
+    if (userDataLastDays) {
+      let formatter = new Intl.DateTimeFormat("ru", {
+        weekday: "short",
+      });
+      return userDataLastDays.map((day) => {
+        return formatter.format(new Date(day.dayStartTimestamp));
+      });
+    }
+    return;
+  }, [userDataLastDays]);
+
+  const bubbleChartData = useMemo(() => {
+    if (weekdaySmokings) {
+      console.log("weekdaySmokings");
+      console.log(weekdaySmokings);
+      return weekdaySmokings
+        .map((day) => {
+          console.log("day");
+          console.log(day);
+          if (day.smokings.length) {
+            return day.smokings.map((smoking) => {
+              console.log("smoking");
+              console.log(smoking);
+
+              return {
+                ts: convertTimestampToTimestampFromDayStart(smoking.timestamp),
+                time: convertMsFromDayStartToHMS(
+                  convertTimestampToTimestampFromDayStart(smoking.timestamp)
+                ),
+              };
+            });
+          }
+        })
+        .filter((item) => item);
+    }
+  }, [weekdaySmokings]);
+
+  Chart.register(
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    Title,
+    Tooltip,
+    Legend,
+    PointElement
+  );
+
+  const barChart = {
+    config: {
+      data: {
+        labels: lastDaysWeekday,
+        datasets: [
+          {
+            data: lastDaysSmokingsCount,
+            backgroundColor: ["hsl(0, 0%, 50%)"],
+          },
+        ],
+      },
+    },
+  };
+
+  const data = bubbleChartData && {
+    datasets: bubbleChartData.map((day, index) => {
+      return {
+        label: "Date" + index,
+        data: day.map((smoking) => {
+          return {
+            x: smoking.ts * 0.001,
+            y: (index + 1) * 10,
+            r: 20,
+          };
+        }),
+        backgroundColor: "rgba(255, 99, 132, 0.5)",
+      };
+    }),
+  };
+
   return (
-    <div
-      className={`smoking-route${className ? " " + className : ""}`}
-      {...props}
-    >
+    <div className={`smoking-route${className ? " " + className : ""}`}>
       <h2>Ввод данных</h2>
       <form className="mb-3">
-        <div className="form-group">
-          <label htmlFor="authLogin" className="form-label">
-            Дата начала бросания
-          </label>
-          <input
-            className="form-control"
-            id="authLogin"
-            value={user.login}
-            onChange={(e) => setUser({ ...user, login: e.target.value })}
-          />
-          <div id="emailHelp" className="form-text">
-            Help text
-          </div>
-        </div>
-        <div className="form-group">
-          <label htmlFor="authPassword" className="form-label">
-            Дата окончания бросания
-          </label>
-          <input
-            type="password"
-            className="form-control"
-            id="authPassword"
-            value={user.password}
-            onChange={(e) => setUser({ ...user, password: e.target.value })}
-          />
-          <div id="emailHelp" className="form-text">
-            Help text
-          </div>
-        </div>
-        <div className="form-group">
-          <label htmlFor="authPassword" className="form-label">
-            Количество выкуриваемых сигарет/стиков в день
-          </label>
-          <input
-            type="password"
-            className="form-control"
-            id="authPassword"
-            value={user.password}
-            onChange={(e) => setUser({ ...user, password: e.target.value })}
-          />
-          <div id="emailHelp" className="form-text">
-            Help text
-          </div>
-        </div>
-        <div className="form-group">
-          <label htmlFor="authPassword" className="form-label">
-            Стоимость 1 пачки сигарет/стиков
-          </label>
-          <input
-            type="password"
-            className="form-control"
-            id="authPassword"
-            value={user.password}
-            onChange={(e) => setUser({ ...user, password: e.target.value })}
-          />
-          <div id="emailHelp" className="form-text">
-            Help text
-          </div>
-        </div>
+        <Input
+          label="Дата начала бросания"
+          id="stopSmokingStart"
+          onChange={onChangeStopSmokingStart}
+          value={form.login}
+        />
+        <Input
+          label="Дата окончания бросания"
+          id="stopSmokingFinish"
+          onChange={onChangeStopSmokingFinish}
+          value={form.login}
+        />
+        <Input
+          label="Количество выкуриваемых сигарет/стиков в день"
+          id="smokingsCount"
+          onChange={onChangeSmokingsCount}
+          value={form.login}
+        />
+        <Input
+          label="Стоимость 1 пачки сигарет/стиков"
+          id="cigarettesPackPrice"
+          onChange={onChangeCigarettesPackPrice}
+          value={form.login}
+        />
       </form>
       <div>
-        <Button type="button">Отмена</Button>
-        <Button type="button" onClick={handleAuthenticateUser}>
-          Войти
+        <Button type="button" onclick={onResetForm}>
+          Отмена
         </Button>
-        <Button
-          type="button"
-          onClick={() => {
-            setRoute("registration-route");
-          }}
-        >
-          Зарегистрироваться
+        <Button type="button" onClick={onSetStopSmoking}>
+          Отправить
         </Button>
       </div>
       {/* <div className="alert">
@@ -104,21 +167,7 @@ const SmokingRoute = ({ className, children, ...props }) => {
         <div>latitude : {geoPosition.lat}</div>
         <div>longitude : {geoPosition.long}</div>
       </div> */}
-      <Alert className="mb-3">
-        {userDataByDays &&
-          userDataByDays[userDataByDays.length - 1].smokings.length && (
-            <div>
-              Last smoking:{" "}
-              {String(
-                new Date(
-                  userDataByDays[
-                    userDataByDays.length - 1
-                  ].smokings[0].timestamp
-                )
-              )}
-            </div>
-          )}
-      </Alert>
+      <Alert className="mb-3">Last smoking: {lastSmokingDate}</Alert>
       <div className="mb-3">
         <Button
           type="button"
@@ -137,161 +186,24 @@ const SmokingRoute = ({ className, children, ...props }) => {
           Stick
         </Button>
       </div>
-      {todaySmokings && (
-        <div className="cigarette-box">
-          <div className="d-flex">
-            <div className="circle-background">
-              <div
-                className={
-                  todaySmokings.length >= 1 ? "circle smoked" : "circle"
-                }
-              ></div>
-            </div>
-            <div className="circle-background">
-              <div
-                className={
-                  todaySmokings.length >= 2 ? "circle smoked" : "circle"
-                }
-              ></div>
-            </div>
-            <div className="circle-background">
-              <div
-                className={
-                  todaySmokings.length >= 3 ? "circle smoked" : "circle"
-                }
-              ></div>
-            </div>
-            <div className="circle-background">
-              <div
-                className={
-                  todaySmokings.length >= 4 ? "circle smoked" : "circle"
-                }
-              ></div>
-            </div>
-            <div className="circle-background">
-              <div
-                className={
-                  todaySmokings.length >= 5 ? "circle smoked" : "circle"
-                }
-              ></div>
-            </div>
-            <div className="circle-background">
-              <div
-                className={
-                  todaySmokings.length >= 6 ? "circle smoked" : "circle"
-                }
-              ></div>
-            </div>
-            <div className="circle-background">
-              <div
-                className={
-                  todaySmokings.length >= 7 ? "circle smoked" : "circle"
-                }
-              ></div>
-            </div>
-          </div>
-          <div className="d-flex">
-            <div className="hole"></div>
-            <div className="circle-background">
-              <div
-                className={
-                  todaySmokings.length >= 8 ? "circle smoked" : "circle"
-                }
-              ></div>
-            </div>
-            <div className="circle-background">
-              <div
-                className={
-                  todaySmokings.length >= 9 ? "circle smoked" : "circle"
-                }
-              ></div>
-            </div>
-            <div className="circle-background">
-              <div
-                className={
-                  todaySmokings.length >= 10 ? "circle smoked" : "circle"
-                }
-              ></div>
-            </div>
-            <div className="circle-background">
-              <div
-                className={
-                  todaySmokings.length >= 11 ? "circle smoked" : "circle"
-                }
-              ></div>
-            </div>
-            <div className="circle-background">
-              <div
-                className={
-                  todaySmokings.length >= 12 ? "circle smoked" : "circle"
-                }
-              ></div>
-            </div>
-            <div className="circle-background">
-              <div
-                className={
-                  todaySmokings.length >= 13 ? "circle smoked" : "circle"
-                }
-              ></div>
-            </div>
-            <div className="hole"></div>
-          </div>
-          <div className="d-flex">
-            <div className="circle-background">
-              <div
-                className={
-                  todaySmokings.length >= 14 ? "circle smoked" : "circle"
-                }
-              ></div>
-            </div>
-            <div className="circle-background">
-              <div
-                className={
-                  todaySmokings.length >= 15 ? "circle smoked" : "circle"
-                }
-              ></div>
-            </div>
-            <div className="circle-background">
-              <div
-                className={
-                  todaySmokings.length >= 16 ? "circle smoked" : "circle"
-                }
-              ></div>
-            </div>
-            <div className="circle-background">
-              <div
-                className={
-                  todaySmokings.length >= 17 ? "circle smoked" : "circle"
-                }
-              ></div>
-            </div>
-            <div className="circle-background">
-              <div
-                className={
-                  todaySmokings.length >= 18 ? "circle smoked" : "circle"
-                }
-              ></div>
-            </div>
-            <div className="circle-background">
-              <div
-                className={
-                  todaySmokings.length >= 19 ? "circle smoked" : "circle"
-                }
-              ></div>
-            </div>
-            <div className="circle-background">
-              <div
-                className={
-                  todaySmokings.length >= 20 ? "circle smoked" : "circle"
-                }
-              ></div>
-            </div>
-          </div>
-        </div>
-      )}
+
+      {/* {todaySmokings && (
+        <CigarettesPack todaySmokingsCount={todaySmokings.length} />
+      )} */}
 
       <Bar data={barChart.config.data} />
-      <Bubble options={options} data={data} />
+
+      <Bubble
+        options={{
+          scales: {
+            y: {
+              beginAtZero: true,
+            },
+          },
+        }}
+        data={data}
+      />
+
       <Button
         onClick={() => {
           setDaysOfStat(7);
@@ -312,7 +224,7 @@ const SmokingRoute = ({ className, children, ...props }) => {
       <hr />
       <h3>weekdaySmokings</h3>
       <hr />
-
+      <Table />
       {weekdaySmokings &&
         weekdaySmokings.map((day, index) => {
           return (
@@ -348,6 +260,7 @@ const SmokingRoute = ({ className, children, ...props }) => {
       <hr />
       <h3>byDaysSmoking</h3>
       <hr />
+      <Table />
       {userDataLastDays &&
         userDataLastDays.map((day, index) => {
           return (
@@ -389,7 +302,6 @@ const SmokingRoute = ({ className, children, ...props }) => {
           })}
         </div>
       )}
-      {children}
     </div>
   );
 };

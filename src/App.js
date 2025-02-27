@@ -1,33 +1,12 @@
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "./App.css";
 import Button from "./components/Button/Button";
-import {
-  Chart,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  PointElement,
-} from "chart.js";
-import { Bar, Bubble } from "react-chartjs-2";
 import AuthRoute from "./routes/AuthRoute/AuthRoute";
 import RegistrationRoute from "./routes/RegistrationRoute/RegistrationRoute";
 import WeightRoute from "./routes/WeightRoute/WeightRoute";
 import RequestRoute from "./routes/RequestRoute/RequestRoute";
-/* import SmokingRoute from "./routes/SmokingRoute/SmokingRoute"; */
+import SmokingRoute from "./routes/SmokingRoute/SmokingRoute";
 import Alert from "./components/Alert/Alert";
-
-Chart.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  PointElement
-);
 
 function App() {
   const [authForm, setAuthForm] = useState({ login: "", password: "" });
@@ -35,6 +14,12 @@ function App() {
     login: "",
     password: "",
     passwordConfirmation: "",
+  });
+  const [stopSmokingForm, setStopSmokingForm] = useState({
+    stopSmokingStart: "",
+    stopSmokingFinish: "",
+    smokingsCount: "",
+    cigarettesPackPrice: "",
   });
   const [weightForm, setWeightForm] = useState({ weight: "" });
   const [isInitApp, setIsInitApp] = useState(false);
@@ -390,47 +375,6 @@ function App() {
       .then((json) => console.log(json));
   };
 
-  const barChart = {
-    config: {
-      data: {
-        labels: lastDaysWeekday,
-        datasets: [
-          {
-            data: lastDaysSmokingsCount,
-            backgroundColor: ["hsl(0, 0%, 50%)"],
-          },
-        ],
-      },
-    },
-  };
-  const createChart = async () => {
-    new Chart(document.getElementById("chart01"), barChart.config);
-  };
-
-  const options = {
-    scales: {
-      y: {
-        beginAtZero: true,
-      },
-    },
-  };
-
-  const data = bubbleChartData && {
-    datasets: bubbleChartData.map((day, index) => {
-      return {
-        label: "Date" + index,
-        data: day.map((smoking) => {
-          return {
-            x: smoking.ts * 0.001,
-            y: (index + 1) * 10,
-            r: 20,
-          };
-        }),
-        backgroundColor: "rgba(255, 99, 132, 0.5)",
-      };
-    }),
-  };
-
   return (
     <div className="app">
       {/* <span className="material-icons">smoke_free</span> Stop Smoking
@@ -516,7 +460,7 @@ function App() {
           }}
         />
       )}
-      {/* {route === "smoking-route" && <SmokingRoute></SmokingRoute>} */}
+      {route === "smoking-route" && <SmokingRoute />}
     </div>
   );
 }
