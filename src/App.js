@@ -7,8 +7,12 @@ import WeightRoute from "./routes/WeightRoute/WeightRoute";
 import RequestRoute from "./routes/RequestRoute/RequestRoute";
 import SmokingRoute from "./routes/SmokingRoute/SmokingRoute";
 import Alert from "./components/Alert/Alert";
+import { getRequest, postRequest } from "./utils/RESTAPI";
 
 function App() {
+  const [route, setRoute] = useState("loading-route");
+  const defaultGuestRoute = "auth-route";
+  const defaultAuthRoute = "smoking-route";
   const [authForm, setAuthForm] = useState({ login: "", password: "" });
   const [regForm, setRegForm] = useState({
     login: "",
@@ -22,20 +26,23 @@ function App() {
     cigarettesPackPrice: "",
   });
   const [weightForm, setWeightForm] = useState({ weight: "" });
-  const [isInitApp, setIsInitApp] = useState(false);
-  const [route, setRoute] = useState("loading-route");
-  const defaultGuestRoute = "auth-route";
-  const defaultAuthRoute = "smoking-route";
+  const [responses, setResponses] = useState([]);
+  const responsesHistoryLength = 10;
+  const url =
+    "https://www.d-skills.ru/87_stop_smoking/php/stopsmokingrestapi.php";
+  //Убрать при публикации
+  const userid = 1;
   const [user, setUser] = useState({
-    login: "",
-    password: "",
-    passwordConfirmation: "",
-    errorType: "",
-    errorText: "",
-    weight: "",
     name: "",
-    auth: false,
+    lastSmokingDate: "",
+    stopSmokingStart: "",
+    stopSmokingFinish: "",
+    smokingsCount: "",
+    cigarettesPackPrice: "",
   });
+  const [userDataLastDays, setUserDataLastDays] = useState(null);
+  const [userDataByWeekday, setUserDataByWeekday] = useState(null);
+  //-----------------------------------------------------------------
   const [userDataByDays, setUserDataByDays] = useState(null);
   const [daysOfStat, setDaysOfStat] = useState(7);
   const [weekdaysStat, setWeekdaysStat] = useState(4);
@@ -69,7 +76,7 @@ function App() {
     return;
   }, [userDataByDays]);
 
-  const userDataLastDays = useMemo(() => {
+  const userDataLastDaysss = useMemo(() => {
     if (userDataByDays) {
       return userDataByDays.filter((day, index) => {
         return index !== userDataByDays.length - 1;
@@ -102,16 +109,16 @@ function App() {
   }, [lastDaysSmokings]);
 
   const lastDaysWeekday = useMemo(() => {
-    if (userDataLastDays) {
+    if (userDataLastDaysss) {
       let formatter = new Intl.DateTimeFormat("ru", {
         weekday: "short",
       });
-      return userDataLastDays.map((day) => {
+      return userDataLastDaysss.map((day) => {
         return formatter.format(new Date(day.dayStartTimestamp));
       });
     }
     return;
-  }, [userDataLastDays]);
+  }, [userDataLastDaysss]);
 
   const bubbleChartData = useMemo(() => {
     if (weekdaySmokings) {
@@ -139,47 +146,6 @@ function App() {
     }
   }, [weekdaySmokings]);
 
-  const getRequest = async (requestType, queries) => {
-    let url =
-      "https://www.d-skills.ru/87_stop_smoking/php/stopsmokingrestapi.php";
-    if (requestType) {
-      url += "/" + requestType;
-    }
-    if (queries) {
-      url += "?";
-      for (let key in queries) {
-        url += key + "=" + queries[key] + "&";
-      }
-      url = url.slice(0, -1);
-    }
-    const responseBody = await fetch(url)
-      .then((response) => response.json())
-      .then((json) => {
-        return json;
-      });
-    return responseBody;
-  };
-
-  const postRequest = async () => {
-    const responseBody = await fetch(
-      "https://www.d-skills.ru/87_stop_smoking/php/stopsmokingrestapi.php/smoking",
-      {
-        method: "POST",
-        body: {},
-        headers: {
-          "Content-type": "application/json; charset=UTF-8",
-        },
-      }
-    )
-      .then((response) => response.json())
-      .then((json) => {
-        console.log(json);
-        setResponse(json);
-        return json;
-      });
-    return responseBody;
-  };
-
   const getUserData = async () => {
     const userDataResponse = await getRequest("user", {
       userid: 1,
@@ -190,51 +156,6 @@ function App() {
     setResponse(userDataResponse);
     setUserDataByDays(userDataResponse.userDataByDays);
   };
-
-  useEffect(() => {
-    const checkUserAuth = async () => {
-      const authResponse = await getRequest("auth", { userid: 1 });
-      console.log("auth");
-      console.log(authResponse);
-      setResponse(authResponse);
-      setUser({ ...user, auth: authResponse.auth });
-      if (authResponse.auth) {
-        setUser({ ...user, name: authResponse.user.name });
-        return true;
-      } else {
-        setUser({ ...user, name: "" });
-        return;
-      }
-    };
-
-    const getUserData = async () => {
-      const userDataResponse = await getRequest("user", {
-        userid: 1,
-        days: daysOfStat,
-        weekdays: weekdaysStat,
-      });
-      console.log("user");
-      console.log(userDataResponse);
-      setResponse(userDataResponse);
-      setUserDataByDays(userDataResponse.userDataByDays);
-      setWeekdaySmokings(userDataResponse.weekdaySmokings);
-    };
-
-    const initApp = async () => {
-      const isAuth = await checkUserAuth();
-      if (isAuth) {
-        await getUserData();
-        setRoute(defaultAuthRoute);
-      } else {
-        setRoute(defaultGuestRoute);
-      }
-      setIsInitApp(true);
-    };
-
-    if (!isInitApp) {
-      initApp();
-    }
-  }, [isInitApp, daysOfStat]);
 
   const resetUser = () => {
     setUser({
@@ -257,40 +178,6 @@ function App() {
         userId: 1,
       }),
     }); */
-  };
-  const handleRegistrateUser = () => {
-    fetch("https://www.d-skills.ru/87_stop_smoking/php/signup.php", {
-      method: "POST",
-      body: JSON.stringify({
-        login: user.login,
-        password: user.password,
-      }),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-      },
-    })
-      .then((response) => response.json())
-      .then((json) => console.log(json));
-  };
-
-  const handleAuthenticateUser = () => {
-    fetch("https://www.d-skills.ru/87_stop_smoking/php/signin.php", {
-      method: "POST",
-      body: JSON.stringify({
-        login: user.login,
-        password: user.password,
-        timeZoneOffset: new Date().getTimezoneOffset(),
-      }),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-      },
-    })
-      .then((response) => response.json())
-      .then((json) => {
-        console.log(json);
-        setRoute(defaultAuthRoute);
-        handleGetUserData();
-      });
   };
 
   const handleGetUserData = () => {
@@ -330,20 +217,6 @@ function App() {
       });
   };
 
-  const handleSetUserWeight = () => {
-    fetch("https://www.d-skills.ru/87_stop_smoking/php/setweight.php", {
-      method: "POST",
-      body: JSON.stringify({
-        weight: user.weight,
-      }),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-      },
-    })
-      .then((response) => response.json())
-      .then((json) => console.log(json));
-  };
-
   const getGeoPosition = () => {
     let geo;
     navigator.geolocation.getCurrentPosition((position) => {
@@ -375,6 +248,107 @@ function App() {
       .then((json) => console.log(json));
   };
 
+  //----------------------------------------------------------------
+  const saveResponse = (response) => {
+    if (responses.length === responsesHistoryLength) {
+      setResponses([
+        ...responses.filter((item, index) => index !== 0 && item),
+        response,
+      ]);
+    } else {
+      setResponses([...responses, response]);
+    }
+  };
+
+  const handleGetRequest = async () => {
+    const response = await getRequest(url);
+    saveResponse(response);
+  };
+
+  const handlePostRequest = async () => {
+    const response = await postRequest(url);
+    saveResponse(response);
+  };
+
+  const handleCheckAuth = async () => {
+    const response = await getRequest(url, "auth", { userid });
+    saveResponse(response);
+    return response;
+  };
+
+  const handleLogout = async () => {
+    const response = await getRequest(url, "logout");
+    saveResponse(response);
+  };
+
+  const handleGetUser = async (queriesObject) => {
+    const response = await getRequest(url, "user", {
+      ...queriesObject,
+      userid,
+    });
+    saveResponse(response);
+    return response;
+  };
+
+  const handleResetRegistration = () => {
+    setRegForm({
+      ...regForm,
+      login: "",
+      password: "",
+      passwordConfirmation: "",
+    });
+  };
+
+  const handleRegistrateUser = async () => {
+    const response = await postRequest(url, "user", {
+      login: regForm.login,
+      password: regForm.password,
+    });
+    saveResponse(response);
+  };
+
+  const handleResetAuth = () => {
+    setAuthForm({ ...authForm, login: "", password: "" });
+  };
+
+  const handleAuthUser = async () => {
+    const response = await postRequest(url, "auth", {
+      login: authForm.login,
+      password: authForm.password,
+      timeZoneOffset: new Date().getTimezoneOffset(),
+    });
+    saveResponse(response);
+  };
+
+  const handleSetWeight = async () => {
+    const response = await postRequest(url, "auth", {
+      weight: weightForm.weight,
+    });
+    saveResponse(response);
+  };
+
+  useEffect(() => {
+    const initApp = async () => {
+      const responseUser = await handleCheckAuth();
+      console.log(responseUser);
+
+      setUser({ ...user, name: responseUser.user.name });
+      if (responseUser.auth) {
+        const responseUserData = await handleGetUser({
+          days: 7,
+          weekdays: 4,
+        });
+        console.log(responseUserData);
+        setUserDataLastDays(responseUserData.lastDays);
+        setUserDataByWeekday(responseUserData.byWeekday);
+        setRoute(defaultAuthRoute);
+      } else {
+        setRoute(defaultGuestRoute);
+      }
+    };
+    initApp();
+  }, []);
+
   return (
     <div className="app">
       {/* <span className="material-icons">smoke_free</span> Stop Smoking
@@ -386,7 +360,7 @@ function App() {
         <Button onClick={() => setRoute("request-route")}>Request</Button>
       </div>
       <Alert className="mb-3">
-        <div>User name: {user.name ? user.name : "empty"}</div>
+        <div>User name: {user?.name || "empty"}</div>
       </Alert>
       {route === "auth-route" && (
         <AuthRoute
@@ -397,9 +371,8 @@ function App() {
           onChangePassword={(e) => {
             setAuthForm({ ...authForm, password: e.target.value });
           }}
-          onAuthUser={() => {
-            console.log("unregistred onAuthUser");
-          }}
+          onResetAuth={handleResetAuth}
+          onAuthUser={handleAuthUser}
           onGoToRegistration={() => {
             setRoute("registration-route");
           }}
@@ -417,46 +390,38 @@ function App() {
           onChangePasswordConfirmation={(e) => {
             setRegForm({ ...regForm, passwordConfirmation: e.target.value });
           }}
-          onCancelRegistration={() => {
-            console.log("unregistred onCancelRegistration");
-          }}
-          onRegistrateUser={() => {
-            console.log("unregistred onRegistrateUser");
-          }}
+          onResetRegistration={handleResetRegistration}
+          onRegistrateUser={handleRegistrateUser}
         />
       )}
       {route === "weight-route" && (
         <WeightRoute
           form={weightForm}
           weights={weights}
-          onChangeWeight={() => {
-            console.log("unregistred onChangeWeight");
+          onChangeWeight={(e) => {
+            setWeightForm({ ...weightForm, weight: e.target.value });
           }}
           onResetWeight={() => {
-            console.log("unregistred onResetWeight");
+            setWeightForm({ ...weightForm, weight: "" });
           }}
-          onSetWeight={() => {
-            console.log("unregistred onSetWeight");
-          }}
+          onSetWeight={handleSetWeight}
         />
       )}
       {route === "request-route" && (
         <RequestRoute
-          responseData={response}
-          onGetRequest={getRequest}
-          onPostRequest={postRequest}
-          onCheckAuth={() => {
-            getRequest("auth", { userid: 1 });
-          }}
+          responses={responses}
+          onGetRequest={handleGetRequest}
+          onPostRequest={handlePostRequest}
+          onCheckAuth={handleCheckAuth}
           onGetUser={() => {
-            getRequest("user", {
-              userid: 1,
-              days: daysOfStat,
-              weekdays: weekdaysStat,
+            handleGetUser({
+              days: 7,
+              weekdays: 4,
             });
           }}
-          onLogout={() => {
-            getRequest("logout");
+          onLogout={handleLogout}
+          onClearResponses={() => {
+            setResponses([]);
           }}
         />
       )}

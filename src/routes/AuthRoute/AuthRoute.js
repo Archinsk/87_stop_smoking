@@ -7,6 +7,7 @@ const AuthRoute = ({
   form,
   onChangeLogin,
   onChangePassword,
+  onResetAuth,
   onAuthUser,
   onGoToRegistration,
   className,
@@ -29,7 +30,9 @@ const AuthRoute = ({
         />
       </form>
       <div>
-        <Button type="button">Отмена</Button>
+        <Button type="button" onClick={onResetAuth}>
+          Отмена
+        </Button>
         <Button type="button" onClick={onAuthUser}>
           Войти
         </Button>

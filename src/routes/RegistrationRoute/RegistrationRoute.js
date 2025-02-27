@@ -8,7 +8,7 @@ const RegistrationRoute = ({
   onChangeLogin,
   onChangePassword,
   onChangePasswordConfirmation,
-  onCancelRegistration,
+  onResetRegistration,
   onRegistrateUser,
   className,
 }) => {
@@ -36,7 +36,7 @@ const RegistrationRoute = ({
         />
       </form>
       <div>
-        <Button type="button" onClick={onCancelRegistration}>
+        <Button type="button" onClick={onResetRegistration}>
           Отмена
         </Button>
         <Button type="button" onClick={onRegistrateUser}>

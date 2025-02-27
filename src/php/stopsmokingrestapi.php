@@ -55,11 +55,8 @@ if ($_SERVER[REQUEST_METHOD] == 'GET') {
       $timeZoneOffsetSec = $timeZoneOffset * 60;
       $userZoneRequestTimestamp = $_SERVER['REQUEST_TIME'] + $timeZoneOffset * 60;
       $startOfToday = $_SERVER['REQUEST_TIME'] - $_SERVER['REQUEST_TIME'] % 86400 + $timeZoneOffsetSec;
-      if ($_SERVER['REQUEST_TIME'] - $startOfToday < 0) {
+      if ($_SERVER['REQUEST_TIME'] % 86400 - $timeZoneOffsetSec > 86400) {
         $startOfToday = $startOfToday + 86400;
-      };
-      if ($_SERVER['REQUEST_TIME'] - $startOfToday > 86400) {
-        $startOfToday = $startOfToday - 86400;
       };
 
       $days = $queries['days'];
@@ -126,7 +123,9 @@ if ($_SERVER[REQUEST_METHOD] == 'GET') {
       $response->requestTime = $_SERVER['REQUEST_TIME'];
       $response->time = time();
       $response->userDataByDays = $userDataByDays;
+      $response->lastDays = $userDataByDays;
       $response->weekdaySmokings = $weekdaySmokings;
+      $response->byWeekday = $weekdaySmokings;
       $response->start = $startOfToday;
       $response->startYest = $startOfToday - 1 * 86400;
       $response->startplus = $_SERVER['REQUEST_TIME'] + $timeZoneOffsetSec - ($_SERVER['REQUEST_TIME'] + $timeZoneOffsetSec) % 86400;

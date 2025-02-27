@@ -16,6 +16,10 @@ import {
   PointElement,
 } from "chart.js";
 import Table from "../../components/Table/Table";
+import {
+  convertMsFromDayStartToHMS,
+  convertTimestampToTimestampFromDayStart,
+} from "../../utils/sateTimeConverters";
 
 const SmokingRoute = ({
   form,
@@ -29,6 +33,7 @@ const SmokingRoute = ({
   onChangeCigarettesPackPrice,
   onResetForm,
   onSetStopSmoking,
+  onGetUserDataLastDays,
   className,
 }) => {
   const lastDaysWeekday = useMemo(() => {
@@ -42,6 +47,22 @@ const SmokingRoute = ({
     }
     return;
   }, [userDataLastDays]);
+
+  const weekdaySmokings = useMemo(() => {
+    if (userDataLastDays) {
+      return [];
+    }
+    return;
+  }, [userDataLastDays]);
+
+  const userDataToday = useMemo(() => {
+    if (userDataLastDays) {
+      return [];
+    }
+    return;
+  }, [userDataLastDays]);
+
+  const lastDaysSmokingsCount = 21;
 
   const bubbleChartData = useMemo(() => {
     if (weekdaySmokings) {
@@ -112,7 +133,7 @@ const SmokingRoute = ({
   return (
     <div className={`smoking-route${className ? " " + className : ""}`}>
       <h2>Ввод данных</h2>
-      <form className="mb-3">
+      {/* <form className="mb-3">
         <Input
           label="Дата начала бросания"
           id="stopSmokingStart"
@@ -139,13 +160,13 @@ const SmokingRoute = ({
         />
       </form>
       <div>
-        <Button type="button" onclick={onResetForm}>
+        <Button type="button" onClick={onResetForm}>
           Отмена
         </Button>
         <Button type="button" onClick={onSetStopSmoking}>
           Отправить
         </Button>
-      </div>
+      </div> */}
       {/* <div className="alert">
         Для достижения результата начните фиксировать каждую выкуриваемую
         сигарету и стик в момент начала курения. Рекомендации появятся после
@@ -191,7 +212,7 @@ const SmokingRoute = ({
         <CigarettesPack todaySmokingsCount={todaySmokings.length} />
       )} */}
 
-      <Bar data={barChart.config.data} />
+      {/* <Bar data={barChart.config.data} />
 
       <Bubble
         options={{
@@ -202,20 +223,18 @@ const SmokingRoute = ({
           },
         }}
         data={data}
-      />
+      /> */}
 
       <Button
         onClick={() => {
-          setDaysOfStat(7);
-          getUserData();
+          onGetUserDataLastDays(7);
         }}
       >
         7 days
       </Button>
       <Button
         onClick={() => {
-          setDaysOfStat(28);
-          getUserData();
+          onGetUserDataLastDays(28);
         }}
       >
         28 days
