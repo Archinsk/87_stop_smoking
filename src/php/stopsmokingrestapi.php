@@ -51,13 +51,9 @@ if ($_SERVER[REQUEST_METHOD] == 'GET') {
   //get-user - данные пользователя
   if ($_SERVER[PATH_INFO] == '/user') {
     if ($userDB) {
-      $timeZoneOffset = $userDB->time_zone_offset;
-      $timeZoneOffsetSec = $timeZoneOffset * 60;
-      $userZoneRequestTimestamp = $_SERVER['REQUEST_TIME'] + $timeZoneOffset * 60;
-      $startOfToday = $_SERVER['REQUEST_TIME'] - $_SERVER['REQUEST_TIME'] % 86400 + $timeZoneOffsetSec;
-      if ($_SERVER['REQUEST_TIME'] % 86400 - $timeZoneOffsetSec > 86400) {
-        $startOfToday = $startOfToday + 86400;
-      };
+      $timeZoneOffsetSec = $userDB->time_zone_offset * 60;
+      $startOfGMTToday = $_SERVER['REQUEST_TIME'] - $timeZoneOffsetSec - ($_SERVER['REQUEST_TIME'] - $timeZoneOffsetSec) % 86400;
+      $startOfToday = $startOfGMTToday + $timeZoneOffsetSec;
 
       $days = $queries['days'];
 

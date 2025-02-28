@@ -24,6 +24,7 @@ function App() {
     stopSmokingFinish: "",
     smokingsCount: "",
     cigarettesPackPrice: "",
+    isBlocked: false,
   });
   const [weightForm, setWeightForm] = useState({ weight: "" });
   const [responses, setResponses] = useState([]);
@@ -146,40 +147,6 @@ function App() {
     }
   }, [weekdaySmokings]);
 
-  const getUserData = async () => {
-    const userDataResponse = await getRequest("user", {
-      userid: 1,
-      days: daysOfStat,
-    });
-    console.log("user");
-    console.log(userDataResponse);
-    setResponse(userDataResponse);
-    setUserDataByDays(userDataResponse.userDataByDays);
-  };
-
-  const resetUser = () => {
-    setUser({
-      login: "",
-      password: "",
-      passwordConfirmation: "",
-      errorType: "",
-      errorText: "",
-      weight: "",
-    });
-  };
-  const handleSubmitForm = (formData) => {
-    console.log("form submit");
-    console.log(formData);
-    /* await fetch("https://jsonplaceholder.typicode.com/posts", {
-      method: "POST",
-      body: JSON.stringify({
-        title: "test-title",
-        body: "test-body",
-        userId: 1,
-      }),
-    }); */
-  };
-
   const handleGetUserData = () => {
     fetch(
       "https://www.d-skills.ru/87_stop_smoking/php/getuser.php?userid=1&days=7"
@@ -197,11 +164,6 @@ function App() {
     let requestBody = {
       smokingType: smokingType,
     };
-    const geo = getGeoPosition();
-    if (geo) {
-      requestBody.latitude = geo.latitude;
-      requestBody.longtitude = geo.longtitude;
-    }
 
     fetch("https://www.d-skills.ru/87_stop_smoking/php/setsmoking.php", {
       method: "POST",
@@ -215,31 +177,6 @@ function App() {
         console.log(json);
         handleGetUserData();
       });
-  };
-
-  const getGeoPosition = () => {
-    let geo;
-    navigator.geolocation.getCurrentPosition((position) => {
-      geo = {
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-      };
-    });
-    return geo;
-  };
-
-  const handleGetGeoPosition = () => {
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setGeoPosition({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        });
-      },
-      () => {
-        setGeoPosition("qwe");
-      }
-    );
   };
 
   const handleLogOut = () => {
@@ -272,8 +209,8 @@ function App() {
 
   const handleCheckAuth = async () => {
     const response = await getRequest(url, "auth", { userid });
+    setUser({ ...user, name: response.user.name });
     saveResponse(response);
-    return response;
   };
 
   const handleLogout = async () => {
@@ -286,8 +223,9 @@ function App() {
       ...queriesObject,
       userid,
     });
+    setUserDataLastDays(response.lastDays);
+    setUserDataByWeekday(response.byWeekday);
     saveResponse(response);
-    return response;
   };
 
   const handleResetRegistration = () => {
@@ -327,20 +265,28 @@ function App() {
     saveResponse(response);
   };
 
+  const handleResetStopSmoking = () => {
+    setAuthForm({
+      ...stopSmokingForm,
+      stopSmokingStart: "",
+      stopSmokingFinish: "",
+      smokingsCount: "",
+      cigarettesPackPrice: "",
+    });
+  };
+
+  const handleSetStopSmoking = () => {
+    console.log("uncreated function");
+  };
+
   useEffect(() => {
     const initApp = async () => {
       const responseUser = await handleCheckAuth();
-      console.log(responseUser);
-
-      setUser({ ...user, name: responseUser.user.name });
       if (responseUser.auth) {
-        const responseUserData = await handleGetUser({
+        await handleGetUser({
           days: 7,
           weekdays: 4,
         });
-        console.log(responseUserData);
-        setUserDataLastDays(responseUserData.lastDays);
-        setUserDataByWeekday(responseUserData.byWeekday);
         setRoute(defaultAuthRoute);
       } else {
         setRoute(defaultGuestRoute);
@@ -348,6 +294,31 @@ function App() {
     };
     initApp();
   }, []);
+
+  /* const getGeoPosition = () => {
+    let geo;
+    navigator.geolocation.getCurrentPosition((position) => {
+      geo = {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      };
+    });
+    return geo;
+  };
+
+  const handleGetGeoPosition = () => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setGeoPosition({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+      },
+      () => {
+        setGeoPosition("qwe");
+      }
+    );
+  }; */
 
   return (
     <div className="app">
@@ -425,7 +396,49 @@ function App() {
           }}
         />
       )}
-      {route === "smoking-route" && <SmokingRoute />}
+      {route === "smoking-route" && (
+        <SmokingRoute
+          form={stopSmokingForm}
+          lastSmokingDate={user.lastSmokingDate}
+          userDataLastDays={userDataLastDays}
+          userDataByWeekday={userDataByWeekday}
+          handleSetSmoking={() => {
+            console.log("unregistred function");
+          }}
+          onChangeStopSmokingStart={(e) => {
+            setStopSmokingForm({
+              ...stopSmokingForm,
+              stopSmokingStart: e.target.value,
+            });
+          }}
+          onChangeStopSmokingFinish={(e) => {
+            setStopSmokingForm({
+              ...stopSmokingForm,
+              stopSmokingStart: e.target.value,
+            });
+          }}
+          onChangeSmokingsCount={(e) => {
+            setStopSmokingForm({
+              ...stopSmokingForm,
+              stopSmokingStart: e.target.value,
+            });
+          }}
+          onChangeCigarettesPackPrice={(e) => {
+            setStopSmokingForm({
+              ...stopSmokingForm,
+              stopSmokingStart: e.target.value,
+            });
+          }}
+          onResetForm={handleResetStopSmoking}
+          onUnblockStopSmoking={() => {
+            setStopSmokingForm({ ...stopSmokingForm, isBlocked: false });
+          }}
+          onSetStopSmoking={handleSetStopSmoking}
+          onGetUserDataLastDays={() => {
+            console.log("unregistred function");
+          }}
+        />
+      )}
     </div>
   );
 }

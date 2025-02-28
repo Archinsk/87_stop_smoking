@@ -32,6 +32,7 @@ const SmokingRoute = ({
   onChangeSmokingsCount,
   onChangeCigarettesPackPrice,
   onResetForm,
+  onUnblockStopSmoking,
   onSetStopSmoking,
   onGetUserDataLastDays,
   className,
@@ -132,8 +133,9 @@ const SmokingRoute = ({
 
   return (
     <div className={`smoking-route${className ? " " + className : ""}`}>
-      <h2>Ввод данных</h2>
-      {/* <form className="mb-3">
+      <Alert className="mb-3">Last smoking: {lastSmokingDate}</Alert>
+      <h2>Окончание курения</h2>
+      <form className="mb-3">
         <Input
           label="Дата начала бросания"
           id="stopSmokingStart"
@@ -166,7 +168,10 @@ const SmokingRoute = ({
         <Button type="button" onClick={onSetStopSmoking}>
           Отправить
         </Button>
-      </div> */}
+        <Button type="button" onClick={onSetStopSmoking}>
+          Переустановить
+        </Button>
+      </div>
       {/* <div className="alert">
         Для достижения результата начните фиксировать каждую выкуриваемую
         сигарету и стик в момент начала курения. Рекомендации появятся после
@@ -188,7 +193,6 @@ const SmokingRoute = ({
         <div>latitude : {geoPosition.lat}</div>
         <div>longitude : {geoPosition.long}</div>
       </div> */}
-      <Alert className="mb-3">Last smoking: {lastSmokingDate}</Alert>
       <div className="mb-3">
         <Button
           type="button"

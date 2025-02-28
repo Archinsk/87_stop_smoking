@@ -1,7 +1,7 @@
 import React from "react";
 import "./Input.css";
 
-const Input = ({ label, className, ...props }) => {
+const Input = ({ label, comment, className, ...props }) => {
   return (
     <div className="form-group">
       <label htmlFor={props.id} className="form-label">
@@ -12,9 +12,11 @@ const Input = ({ label, className, ...props }) => {
         className={`form-control${className ? " " + className : ""}`}
         {...props}
       />
-      <div id="emailHelp" className="form-text">
-        Help text
-      </div>
+      {comment?.text && (
+        <div id="emailHelp" className="form-text">
+          Help text
+        </div>
+      )}
     </div>
   );
 };
