@@ -80,6 +80,7 @@ if ($_SERVER[REQUEST_METHOD] == 'GET') {
         foreach( $oneDayWeightsDB as $weightItem) {
           $weight = new stdClass();
           $weight->id = $weightItem->id;
+          $weight->weight = $weightItem->weight;
           $weight->timestamp = $weightItem->timestamp * 1000;
           array_push($oneDayWeights, $weight);
         };
@@ -109,7 +110,7 @@ if ($_SERVER[REQUEST_METHOD] == 'GET') {
           array_push($oneDaySmokings, $smoking);
         };
         $oneDay = new stdClass();
-        $oneDay->dayStartTimestamp = ($startOfToday - $i * 86400) * 1000;
+        $oneDay->dayStartTimestamp = ($startOfToday - $i * 7 * 86400) * 1000;
         $oneDay->smokings = $oneDaySmokings;
         array_push($weekdaySmokings, $oneDay);
       };
@@ -148,8 +149,33 @@ if ($_SERVER[REQUEST_METHOD] == 'GET') {
   };
 };
 
-//if ($_SERVER[REQUEST_METHOD] == 'POST') {
-//};
+if ($_SERVER[REQUEST_METHOD] == 'POST') {
+  //Парсинг входящего JSON'а
+  $request = json_decode(file_get_contents('php://input'), true);
+
+  //Проверка идентификатора авторизованного пользователя в теле запроса (убрать при публикации приложения)
+  if ( isset($request) && $request['userid']) {
+    $authUserId = $request['userid'];
+  }
+
+  //Проверка наличия пользователя с id из сессии в БД и получение его данных
+  $userDB = R::findOne('users', 'id = ?', array($authUserId));
+
+  //set-weight - установка веса
+  if ($_SERVER[PATH_INFO] == '/weight') {
+    $weight = R::dispense('weights');
+    $weight->userid = $userDB->id;
+    $weight->weight = $request['weight'];
+    $weight->timestamp = $_SERVER['REQUEST_TIME'];
+    $id = R::store($weight);
+
+    $response->id = $id;
+    $response->weight = $request['weight'];
+    $response->timestamp = $time;
+  };
+
+  
+};
 
 //$response->server = $_SERVER;
 $response->requestMethod = $_SERVER[REQUEST_METHOD];

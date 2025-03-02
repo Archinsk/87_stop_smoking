@@ -18,8 +18,11 @@ import {
 import Table from "../../components/Table/Table";
 import {
   convertMsFromDayStartToHMS,
+  convertTimestampToDMY,
+  convertTimestampToHMS,
   convertTimestampToTimestampFromDayStart,
-} from "../../utils/sateTimeConverters";
+  convertTimestampToW,
+} from "../../utils/dateTimeConverters";
 
 const SmokingRoute = ({
   form,
@@ -37,47 +40,46 @@ const SmokingRoute = ({
   onGetUserDataLastDays,
   className,
 }) => {
-  const lastDaysWeekday = useMemo(() => {
-    if (userDataLastDays) {
-      let formatter = new Intl.DateTimeFormat("ru", {
-        weekday: "short",
-      });
-      return userDataLastDays.map((day) => {
-        return formatter.format(new Date(day.dayStartTimestamp));
-      });
-    }
-    return;
-  }, [userDataLastDays]);
-
-  const weekdaySmokings = useMemo(() => {
-    if (userDataLastDays) {
-      return [];
-    }
-    return;
-  }, [userDataLastDays]);
-
   const userDataToday = useMemo(() => {
-    if (userDataLastDays) {
-      return [];
-    }
-    return;
+    return userDataLastDays[userDataLastDays.length - 1];
   }, [userDataLastDays]);
 
-  const lastDaysSmokingsCount = 21;
+  const todaySmokings = useMemo(() => {
+    return userDataToday.smokings;
+  }, [userDataToday]);
+
+  const userDataLastDaysFromYesterday = useMemo(() => {
+    return userDataLastDays.slice(0, -1);
+  }, [userDataLastDays]);
+
+  const lastDaysSmokingsFromYesterday = useMemo(() => {
+    if (userDataLastDaysFromYesterday) {
+      return userDataLastDaysFromYesterday.map((day) => day.smokings);
+    }
+    return;
+  }, [userDataLastDaysFromYesterday]);
+
+  const lastDaysSmokingsFromYesterdayCounts = useMemo(() => {
+    if (lastDaysSmokingsFromYesterday) {
+      return lastDaysSmokingsFromYesterday.map((smokings) => smokings.length);
+    }
+    return;
+  }, [lastDaysSmokingsFromYesterday]);
+
+  const lastDaysSmokingsFromYesterdayWeekdays = useMemo(() => {
+    if (userDataLastDaysFromYesterday) {
+      return userDataLastDaysFromYesterday.map((day) => {
+        return convertTimestampToW(day.dayStartTimestamp);
+      });
+    }
+  }, [userDataLastDaysFromYesterday]);
 
   const bubbleChartData = useMemo(() => {
-    if (weekdaySmokings) {
-      console.log("weekdaySmokings");
-      console.log(weekdaySmokings);
-      return weekdaySmokings
+    if (userDataByWeekday) {
+      return userDataByWeekday
         .map((day) => {
-          console.log("day");
-          console.log(day);
           if (day.smokings.length) {
             return day.smokings.map((smoking) => {
-              console.log("smoking");
-              console.log(smoking);
-
               return {
                 ts: convertTimestampToTimestampFromDayStart(smoking.timestamp),
                 time: convertMsFromDayStartToHMS(
@@ -89,33 +91,9 @@ const SmokingRoute = ({
         })
         .filter((item) => item);
     }
-  }, [weekdaySmokings]);
+  }, [userDataByWeekday]);
 
-  Chart.register(
-    CategoryScale,
-    LinearScale,
-    BarElement,
-    Title,
-    Tooltip,
-    Legend,
-    PointElement
-  );
-
-  const barChart = {
-    config: {
-      data: {
-        labels: lastDaysWeekday,
-        datasets: [
-          {
-            data: lastDaysSmokingsCount,
-            backgroundColor: ["hsl(0, 0%, 50%)"],
-          },
-        ],
-      },
-    },
-  };
-
-  const data = bubbleChartData && {
+  const data = {
     datasets: bubbleChartData.map((day, index) => {
       return {
         label: "Date" + index,
@@ -129,6 +107,26 @@ const SmokingRoute = ({
         backgroundColor: "rgba(255, 99, 132, 0.5)",
       };
     }),
+  };
+
+  Chart.register(
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    Title,
+    Tooltip,
+    Legend,
+    PointElement
+  );
+
+  const barChartData = {
+    labels: lastDaysSmokingsFromYesterdayWeekdays,
+    datasets: [
+      {
+        data: lastDaysSmokingsFromYesterdayCounts,
+        backgroundColor: ["hsl(0, 0%, 50%)"],
+      },
+    ],
   };
 
   return (
@@ -212,11 +210,9 @@ const SmokingRoute = ({
         </Button>
       </div>
 
-      {/* {todaySmokings && (
-        <CigarettesPack todaySmokingsCount={todaySmokings.length} />
-      )} */}
+      {todaySmokings && <CigarettesPack todaySmokings={todaySmokings} />}
 
-      {/* <Bar data={barChart.config.data} />
+      <Bar data={barChartData} />
 
       <Bubble
         options={{
@@ -227,104 +223,77 @@ const SmokingRoute = ({
           },
         }}
         data={data}
-      /> */}
+      />
+      <div>
+        <Button
+          onClick={() => {
+            onGetUserDataLastDays(7);
+          }}
+        >
+          7 days
+        </Button>
+        <Button
+          onClick={() => {
+            onGetUserDataLastDays(28);
+          }}
+        >
+          28 days
+        </Button>
+      </div>
 
-      <Button
-        onClick={() => {
-          onGetUserDataLastDays(7);
-        }}
-      >
-        7 days
-      </Button>
-      <Button
-        onClick={() => {
-          onGetUserDataLastDays(28);
-        }}
-      >
-        28 days
-      </Button>
-
-      <hr />
-      <h3>weekdaySmokings</h3>
-      <hr />
-      <Table />
-      {weekdaySmokings &&
-        weekdaySmokings.map((day, index) => {
-          return (
-            <>
-              <div className="one-day">
-                <div>
-                  <b>
-                    dayStart - {day.dayStartTimestamp} -{" "}
-                    {String(new Date(day.dayStartTimestamp))}
-                  </b>
-                </div>
-                {day.smokings.map((smoking) => {
-                  return (
-                    <div key={smoking.id}>
-                      {convertMsFromDayStartToHMS(
-                        convertTimestampToTimestampFromDayStart(
-                          smoking.timestamp
-                        )
-                      )}{" "}
-                      -{" "}
-                      {convertTimestampToTimestampFromDayStart(
-                        smoking.timestamp
-                      )}{" "}
-                      - {smoking.type} - {smoking.timestamp} -{" "}
-                      {String(new Date(smoking.timestamp))}
-                    </div>
-                  );
-                })}
-              </div>
-            </>
-          );
-        })}
       <hr />
       <h3>byDaysSmoking</h3>
-      <hr />
-      <Table />
       {userDataLastDays &&
         userDataLastDays.map((day, index) => {
           return (
-            <>
-              <div className="one-day">
-                <div>
-                  <b>
-                    dayStart - {day.dayStartTimestamp} -{" "}
-                    {String(new Date(day.dayStartTimestamp))}
-                  </b>
-                </div>
-                {day.smokings.map((smoking) => {
-                  return (
-                    <div key={smoking.id}>
-                      {smoking.type} - {smoking.timestamp} -{" "}
-                      {String(new Date(smoking.timestamp))}
-                    </div>
-                  );
-                })}
+            <div className="one-day">
+              <div>
+                <b>{convertTimestampToDMY(day.dayStartTimestamp)}</b>
               </div>
-            </>
+              <Table
+                data={[
+                  [
+                    { tag: "th", content: "Время" },
+                    { tag: "th", content: "Тип" },
+                  ],
+                  ...day.smokings.map((smoking) => {
+                    return [
+                      convertTimestampToHMS(smoking.timestamp),
+                      smoking.type,
+                    ];
+                  }),
+                ]}
+              />
+            </div>
           );
         })}
-      {userDataToday && (
-        <div className="one-day">
-          <div>
-            <b>
-              todayDayStart - {userDataToday.dayStartTimestamp} -{" "}
-              {String(new Date(userDataToday.dayStartTimestamp))}
-            </b>
-          </div>
-          {userDataToday.smokings.map((smoking) => {
-            return (
-              <div key={smoking.id}>
-                {smoking.type} - {smoking.timestamp} -{" "}
-                {String(new Date(smoking.timestamp))}
+
+      <hr />
+      <h3>weekdaySmokings</h3>
+      {userDataByWeekday &&
+        userDataByWeekday.map((day, index) => {
+          return (
+            <div className="one-day">
+              <div>
+                <b>{convertTimestampToDMY(day.dayStartTimestamp)}</b>
               </div>
-            );
-          })}
-        </div>
-      )}
+              <Table
+                data={[
+                  [
+                    { tag: "th", content: "Время" },
+                    { tag: "th", content: "Тип" },
+                  ],
+                  ...day.smokings.map((smoking) => {
+                    return [
+                      convertTimestampToHMS(smoking.timestamp),
+                      smoking.type,
+                    ];
+                  }),
+                ]}
+              />
+            </div>
+          );
+        })}
     </div>
   );
 };

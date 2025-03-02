@@ -43,6 +43,7 @@ function App() {
   });
   const [userDataLastDays, setUserDataLastDays] = useState(null);
   const [userDataByWeekday, setUserDataByWeekday] = useState(null);
+  const [userWeightsLastDays, setUserWeightsLastDays] = useState(null);
   //-----------------------------------------------------------------
   const [userDataByDays, setUserDataByDays] = useState(null);
   const [daysOfStat, setDaysOfStat] = useState(7);
@@ -56,6 +57,18 @@ function App() {
 
   const [chart, setChart] = useState(false);
   const [response, setResponse] = useState(null);
+
+  const weightsLastDays = useMemo(() => {
+    if (userDataLastDays) {
+      return userDataLastDays.map((day) => {
+        return {
+          dayStartTimestamp: day.dayStartTimestamp,
+          weights: day.weights,
+        };
+      });
+    }
+    return;
+  }, [userDataLastDays]);
 
   const convertTimestampToTimestampFromDayStart = (timestamp) => {
     return timestamp % 86400000;
@@ -211,6 +224,7 @@ function App() {
     const response = await getRequest(url, "auth", { userid });
     setUser({ ...user, name: response.user.name });
     saveResponse(response);
+    if (response.auth) return true;
   };
 
   const handleLogout = async () => {
@@ -259,9 +273,11 @@ function App() {
   };
 
   const handleSetWeight = async () => {
-    const response = await postRequest(url, "auth", {
+    const response = await postRequest(url, "weight", {
       weight: weightForm.weight,
+      userid,
     });
+    setUserWeightsLastDays(response);
     saveResponse(response);
   };
 
@@ -281,8 +297,8 @@ function App() {
 
   useEffect(() => {
     const initApp = async () => {
-      const responseUser = await handleCheckAuth();
-      if (responseUser.auth) {
+      const isAuthUser = await handleCheckAuth();
+      if (isAuthUser) {
         await handleGetUser({
           days: 7,
           weekdays: 4,
@@ -368,7 +384,7 @@ function App() {
       {route === "weight-route" && (
         <WeightRoute
           form={weightForm}
-          weights={weights}
+          weights={weightsLastDays}
           onChangeWeight={(e) => {
             setWeightForm({ ...weightForm, weight: e.target.value });
           }}

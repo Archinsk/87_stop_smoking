@@ -14,7 +14,7 @@ const Table = ({ data, className, children, ...props }) => {
             rowspan={cellData.rowspan}
             scope={cellData.scope}
           >
-            {cellData.content}
+            {cellData.content || cellData}
           </TableCell>
         );
       });

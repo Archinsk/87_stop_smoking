@@ -2,6 +2,11 @@ import React from "react";
 import "./WeightRoute.css";
 import Input from "../../components/Input/Input";
 import Button from "../../components/Button/Button";
+import {
+  convertTimestampToDMY,
+  convertTimestampToHMS,
+} from "../../utils/dateTimeConverters";
+import Table from "../../components/Table/Table";
 
 const WeightRoute = ({
   form,
@@ -32,17 +37,30 @@ const WeightRoute = ({
       </div>
 
       <h3>Веса</h3>
-      {weights.length && (
-        <ul>
-          {weights.map((item) => {
-            return (
-              <li key={item.id}>
-                {item.weight} - {String(new Date(item.timestamp))}
-              </li>
-            );
-          })}
-        </ul>
-      )}
+      {weights &&
+        weights.map((day, index) => {
+          return (
+            <div className="one-day">
+              <div>
+                <b>{convertTimestampToDMY(day.dayStartTimestamp)}</b>
+              </div>
+              <Table
+                data={[
+                  [
+                    { tag: "th", content: "Время" },
+                    { tag: "th", content: "Тип" },
+                  ],
+                  ...day.weights.map((weight) => {
+                    return [
+                      convertTimestampToHMS(weight.timestamp),
+                      weight.weight,
+                    ];
+                  }),
+                ]}
+              />
+            </div>
+          );
+        })}
     </div>
   );
 };

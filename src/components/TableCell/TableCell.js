@@ -1,4 +1,5 @@
 import React from "react";
+import "./TableCell.css";
 
 const TableCell = ({ tag, className, children, ...props }) => {
   if (tag === "th") {
