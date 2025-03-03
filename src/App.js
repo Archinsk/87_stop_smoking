@@ -173,25 +173,6 @@ function App() {
       });
   };
 
-  const handleSetSmoking = (smokingType) => {
-    let requestBody = {
-      smokingType: smokingType,
-    };
-
-    fetch("https://www.d-skills.ru/87_stop_smoking/php/setsmoking.php", {
-      method: "POST",
-      body: JSON.stringify(requestBody),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-      },
-    })
-      .then((response) => response.json())
-      .then((json) => {
-        console.log(json);
-        handleGetUserData();
-      });
-  };
-
   const handleLogOut = () => {
     fetch("https://www.d-skills.ru/87_stop_smoking/php/signout.php")
       .then((response) => response.json())
@@ -268,6 +249,7 @@ function App() {
       login: authForm.login,
       password: authForm.password,
       timeZoneOffset: new Date().getTimezoneOffset(),
+      userid,
     });
     saveResponse(response);
   };
@@ -281,6 +263,15 @@ function App() {
     saveResponse(response);
   };
 
+  const handleSetSmoking = async (smokingType) => {
+    const response = await postRequest(url, "smoking", {
+      smokingType: smokingType,
+      userid,
+    });
+    handleGetUser(response);
+    saveResponse(response);
+  };
+
   const handleResetStopSmoking = () => {
     setAuthForm({
       ...stopSmokingForm,
@@ -291,8 +282,15 @@ function App() {
     });
   };
 
-  const handleSetStopSmoking = () => {
-    console.log("uncreated function");
+  const handleSetStopSmoking = async () => {
+    const response = await postRequest(url, "stopsmoking", {
+      stopSmokingStart: stopSmokingForm.stopSmokingStart,
+      stopSmokingFinish: stopSmokingForm.stopSmokingFinish,
+      smokingsCount: stopSmokingForm.smokingsCount,
+      cigarettesPackPrice: stopSmokingForm.cigarettesPackPrice,
+      userid,
+    });
+    saveResponse(response);
   };
 
   useEffect(() => {
@@ -418,9 +416,7 @@ function App() {
           lastSmokingDate={user.lastSmokingDate}
           userDataLastDays={userDataLastDays}
           userDataByWeekday={userDataByWeekday}
-          handleSetSmoking={() => {
-            console.log("unregistred function");
-          }}
+          onSetSmoking={handleSetSmoking}
           onChangeStopSmokingStart={(e) => {
             setStopSmokingForm({
               ...stopSmokingForm,
@@ -430,19 +426,19 @@ function App() {
           onChangeStopSmokingFinish={(e) => {
             setStopSmokingForm({
               ...stopSmokingForm,
-              stopSmokingStart: e.target.value,
+              stopSmokingFinish: e.target.value,
             });
           }}
           onChangeSmokingsCount={(e) => {
             setStopSmokingForm({
               ...stopSmokingForm,
-              stopSmokingStart: e.target.value,
+              smokingsCount: e.target.value,
             });
           }}
           onChangeCigarettesPackPrice={(e) => {
             setStopSmokingForm({
               ...stopSmokingForm,
-              stopSmokingStart: e.target.value,
+              cigarettesPackPrice: e.target.value,
             });
           }}
           onResetForm={handleResetStopSmoking}

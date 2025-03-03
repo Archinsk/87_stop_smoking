@@ -29,7 +29,7 @@ const SmokingRoute = ({
   lastSmokingDate,
   userDataLastDays,
   userDataByWeekday,
-  handleSetSmoking,
+  onSetSmoking,
   onChangeStopSmokingStart,
   onChangeStopSmokingFinish,
   onChangeSmokingsCount,
@@ -137,24 +137,28 @@ const SmokingRoute = ({
         <Input
           label="Дата начала бросания"
           id="stopSmokingStart"
+          type="date"
           onChange={onChangeStopSmokingStart}
           value={form.login}
         />
         <Input
           label="Дата окончания бросания"
           id="stopSmokingFinish"
+          type="date"
           onChange={onChangeStopSmokingFinish}
           value={form.login}
         />
         <Input
           label="Количество выкуриваемых сигарет/стиков в день"
           id="smokingsCount"
+          type="number"
           onChange={onChangeSmokingsCount}
           value={form.login}
         />
         <Input
           label="Стоимость 1 пачки сигарет/стиков"
           id="cigarettesPackPrice"
+          type="number"
           onChange={onChangeCigarettesPackPrice}
           value={form.login}
         />
@@ -195,7 +199,7 @@ const SmokingRoute = ({
         <Button
           type="button"
           onClick={() => {
-            handleSetSmoking("cigarette");
+            onSetSmoking("cigarette");
           }}
         >
           Cigarette
@@ -203,7 +207,7 @@ const SmokingRoute = ({
         <Button
           type="button"
           onClick={() => {
-            handleSetSmoking("stick");
+            onSetSmoking("stick");
           }}
         >
           Stick

@@ -161,20 +161,97 @@ if ($_SERVER[REQUEST_METHOD] == 'POST') {
   //Проверка наличия пользователя с id из сессии в БД и получение его данных
   $userDB = R::findOne('users', 'id = ?', array($authUserId));
 
-  //set-weight - установка веса
-  if ($_SERVER[PATH_INFO] == '/weight') {
-    $weight = R::dispense('weights');
-    $weight->userid = $userDB->id;
-    $weight->weight = $request['weight'];
-    $weight->timestamp = $_SERVER['REQUEST_TIME'];
-    $id = R::store($weight);
+  if ($userDB) {
+    //set-weight - установка веса
+    if ($_SERVER[PATH_INFO] == '/weight') {
+      $weight = R::dispense('weights');
+      $weight->userid = $userDB->id;
+      $weight->weight = $request['weight'];
+      $weight->timestamp = $_SERVER['REQUEST_TIME'];
+      $id = R::store($weight);
 
-    $response->id = $id;
-    $response->weight = $request['weight'];
-    $response->timestamp = $time;
+      $response->id = $id;
+      $response->weight = $request['weight'];
+      $response->timestamp = $time;
+    };
+    
+    //set-smoking - запись курения
+    if ($_SERVER[PATH_INFO] == '/smoking') {
+      $smoking = R::dispense('smokings');
+      $smoking->userid = $userDB->id;
+      $smoking->type = $request['smokingType'];
+      $smoking->timestamp = $_SERVER['REQUEST_TIME'];
+      $id = R::store($smoking);
+
+      $response->id = $id;
+      $response->type = $request['smokingType'];
+      $response->timestamp = $_SERVER['REQUEST_TIME'];
+    };
+
+    //set-stop-smoking - установка данных для бросания курить
+    if ($_SERVER[PATH_INFO] == '/stopsmoking') {
+      $updatedUser = R::load('users', $userDB->id);
+      $dateStopSmokingStart = new DateTime($request['stopSmokingStart']);
+      $timestampStopSmokingStart = $dateStopSmokingStart->getTimestamp();
+      $updatedUser->stopSmokingStart = $timestampStopSmokingStart;
+      $dateStopSmokingFinish = new DateTime($request['stopSmokingFinish']);
+      $timestampStopSmokingFinish = $dateStopSmokingFinish->getTimestamp();
+      $updatedUser->stopSmokingsFinish = $timestampStopSmokingFinish;
+      $updatedUser->smokingsCount = $request['smokingsCount'];
+      $updatedUser->cigarettesPackPrice = $request['cigarettesPackPrice'];
+      R::store($updatedUser);
+
+      $date = new DateTime('2008-09-22');
+      echo $date->getTimestamp();
+
+      $response->userUpdated = true;
+    };
+
+    //auth - авторизация
+    if ($_SERVER[PATH_INFO] == '/auth') {
+      if ( password_verify($request['password'], $userDB->password) ) {
+        $response->id = $userDB->id;
+	      $response->name = $userDB->login;
+        $response->auth = true;
+      } else {
+        $error = new stdClass();
+        $error->type = 'password';
+        $error->text = 'Неверно введен пароль!';
+        $response->error = $error;
+      };
+    };
+  } else {
+    //auth - ошибка поиска пользователя в БД при авторизации
+    if ($_SERVER[PATH_INFO] == '/auth') {
+      $error = new stdClass();
+      $error->type = 'login';
+      $error->text = 'Пользователь не зарегистрирован!';
+      $response->error = $error; 
+      $response->auth = false;
+    };
   };
-
   
+  //user - регистрация пользователя
+  if ($_SERVER[PATH_INFO] == '/user') {
+    $userAlreadyExist = R::findOne('users', 'login = ?', array($request['login']));
+    if ($userAlreadyExist) {
+      $error = new stdClass();
+      $error->type = 'login';
+      $error->text = 'Логин уже занят!';
+      $response->error = $error;
+      $response->registration = false;
+    } else {
+      $regUser = R::dispense('users');
+      $regUser->login = $request['login'];
+      $regUser->password = password_hash($request['password'], PASSWORD_DEFAULT);
+      $id = R::store($regUser);
+
+      $userDB = R::findOne('users', 'id = ?', array($id));
+      $response->id = $userDB->id;
+	    $response->name = $userDB->login;
+      $response->registration = true;
+    };
+  };
 };
 
 //$response->server = $_SERVER;
