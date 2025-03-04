@@ -5,6 +5,7 @@ import Button from "../../components/Button/Button";
 
 const RequestRoute = ({
   responses,
+  onGetServer,
   onGetRequest,
   onPostRequest,
   onCheckAuth,
@@ -16,6 +17,7 @@ const RequestRoute = ({
   return (
     <div className={`request-route${className ? " " + className : ""}`}>
       <div className="mb-3">
+        <Button onClick={onGetServer}>GetServer</Button>
         <Button onClick={onGetRequest}>GET</Button>
         <Button onClick={onPostRequest}>POST</Button>
         <Button onClick={onClearResponses}>ClearResponses</Button>

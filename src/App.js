@@ -24,6 +24,7 @@ function App() {
     stopSmokingFinish: "",
     smokingsCount: "",
     cigarettesPackPrice: "",
+    smokedFromStopSmokingStart: null,
     isBlocked: false,
   });
   const [weightForm, setWeightForm] = useState({ weight: "" });
@@ -191,6 +192,11 @@ function App() {
     }
   };
 
+  const handleGetServer = async () => {
+    const response = await getRequest(url, "server");
+    saveResponse(response);
+  };
+
   const handleGetRequest = async () => {
     const response = await getRequest(url);
     saveResponse(response);
@@ -220,6 +226,16 @@ function App() {
     });
     setUserDataLastDays(response.lastDays);
     setUserDataByWeekday(response.byWeekday);
+    setUser({
+      ...user,
+      stopSmokingStart: response.stopSmokingStart,
+      stopSmokingFinish: response.stopSmokingFinish,
+      lastSmokingDate: response.lastSmokingDate,
+      cigarettesPackPrice: response.cigarettesPackPrice,
+      smokingsCount: response.smokingsCount,
+      smokedFromStopSmokingStart: response.smokedFromStopSmokingStart,
+      name: response.name,
+    });
     saveResponse(response);
   };
 
@@ -395,6 +411,7 @@ function App() {
       {route === "request-route" && (
         <RequestRoute
           responses={responses}
+          onGetServer={handleGetServer}
           onGetRequest={handleGetRequest}
           onPostRequest={handlePostRequest}
           onCheckAuth={handleCheckAuth}
@@ -413,7 +430,7 @@ function App() {
       {route === "smoking-route" && (
         <SmokingRoute
           form={stopSmokingForm}
-          lastSmokingDate={user.lastSmokingDate}
+          user={user}
           userDataLastDays={userDataLastDays}
           userDataByWeekday={userDataByWeekday}
           onSetSmoking={handleSetSmoking}

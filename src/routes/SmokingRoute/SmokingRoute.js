@@ -19,6 +19,7 @@ import Table from "../../components/Table/Table";
 import {
   convertMsFromDayStartToHMS,
   convertTimestampToDMY,
+  convertTimestampToDMYHMS,
   convertTimestampToHMS,
   convertTimestampToTimestampFromDayStart,
   convertTimestampToW,
@@ -26,7 +27,7 @@ import {
 
 const SmokingRoute = ({
   form,
-  lastSmokingDate,
+  user,
   userDataLastDays,
   userDataByWeekday,
   onSetSmoking,
@@ -40,6 +41,39 @@ const SmokingRoute = ({
   onGetUserDataLastDays,
   className,
 }) => {
+  const oneCigarettePrice = useMemo(() => {
+    if (user.cigarettesPackPrice) {
+      return (user.cigarettesPackPrice / 20).toFixed(2);
+    }
+  }, [user]);
+
+  const daysFromStopSmokingStart = useMemo(() => {
+    if (user.stopSmokingStart) {
+      const now = new Date();
+      const timezoneOffset = now.getTimezoneOffset();
+      const todayStart = now - (now % 86400000) + timezoneOffset * 60 * 1000;
+      return (todayStart - user.stopSmokingStart) / 86400000;
+    }
+  }, [user]);
+
+  const cancelledCigarettes = useMemo(() => {
+    if (user.smokedFromStopSmokingStart) {
+      return daysFromStopSmokingStart * 21 - user.smokedFromStopSmokingStart;
+    }
+  }, [daysFromStopSmokingStart, user]);
+
+  const savedMoney = useMemo(() => {
+    if (cancelledCigarettes) {
+      return cancelledCigarettes * oneCigarettePrice;
+    }
+  }, [cancelledCigarettes, oneCigarettePrice]);
+
+  const savedTime = useMemo(() => {
+    if (cancelledCigarettes) {
+      return cancelledCigarettes * 3;
+    }
+  }, [cancelledCigarettes]);
+
   const userDataToday = useMemo(() => {
     return userDataLastDays[userDataLastDays.length - 1];
   }, [userDataLastDays]);
@@ -131,7 +165,29 @@ const SmokingRoute = ({
 
   return (
     <div className={`smoking-route${className ? " " + className : ""}`}>
-      <Alert className="mb-3">Last smoking: {lastSmokingDate}</Alert>
+      <Alert className="mb-3">
+        <div>
+          Last smoking: {convertTimestampToDMYHMS(user.lastSmokingDate)}
+        </div>
+        <div>
+          Stop smoking start: {convertTimestampToDMYHMS(user.stopSmokingStart)}
+        </div>
+        <div>
+          Stop smoking finish:{" "}
+          {convertTimestampToDMYHMS(user.stopSmokingFinish)}
+        </div>
+        <div>Cigarettes pack price: {user.cigarettesPackPrice}</div>
+        <div>Smokings count: {user.smokingsCount}</div>
+        <div>
+          Smoked from stop smoking start to today:{" "}
+          {user.smokedFromStopSmokingStart}
+        </div>
+        <div>One cigarette price: {oneCigarettePrice} rub.</div>
+        <div>Days from stopSmokingStart: {daysFromStopSmokingStart}</div>
+        <div>Отмененные сигареты: {cancelledCigarettes}</div>
+        <div>Сэкономленные на курении деньги: {savedMoney} руб.</div>
+        <div>Сэкономленные на курении время жизни: {savedTime} мин.</div>
+      </Alert>
       <h2>Окончание курения</h2>
       <form className="mb-3">
         <Input

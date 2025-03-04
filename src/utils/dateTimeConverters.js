@@ -29,6 +29,18 @@ export const convertTimestampToDMY = (timestamp) => {
   return formatter.format(new Date(timestamp));
 };
 
+export const convertTimestampToDMYHMS = (timestamp) => {
+  const formatter = new Intl.DateTimeFormat("ru", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+  });
+  return formatter.format(new Date(timestamp));
+};
+
 export const convertTimestampToW = (timestamp) => {
   const formatter = new Intl.DateTimeFormat("ru", {
     weekday: "short",

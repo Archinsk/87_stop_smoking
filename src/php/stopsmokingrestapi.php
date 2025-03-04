@@ -26,6 +26,8 @@ $authUserId = $_SESSION['auth_user_id'];
 $queries = array();
 parse_str($_SERVER[QUERY_STRING], $queries);
 
+$serverTimezoneOffsetMin = date('Z') / 60;
+
 //Определение метода запроса
 if ($_SERVER[REQUEST_METHOD] == 'GET') {
   //Проверка идентификатора авторизованного пользователя в строке запроса (убрать при публикации приложения)
@@ -36,6 +38,18 @@ if ($_SERVER[REQUEST_METHOD] == 'GET') {
   //Проверка наличия пользователя с id из сессии в БД и получение его данных
   $userDB = R::findOne('users', 'id = ?', array($authUserId));
   
+  //get-server - данные сервера
+  if ($_SERVER[PATH_INFO] == '/server') {
+    $response->server = $_SERVER;
+    
+    $timestampDateTest = date('Z');
+    //$timestampDateTestOffset = getOffset($timestampDateTest);
+      
+    $response->server = $_SERVER;
+    $response->dateTestOffset = $timestampDateTest;
+    //$response->timestampDateTestOffset = $timestampDateTestOffset;
+  };
+
   //get-auth - проверка авторизации
   if ($_SERVER[PATH_INFO] == '/auth') {
     if ($userDB) {
@@ -115,18 +129,19 @@ if ($_SERVER[REQUEST_METHOD] == 'GET') {
         array_push($weekdaySmokings, $oneDay);
       };
 
-      $response->session = $_SESSION;
-      $response->offset = $timeZoneOffset;
-      $response->requestTime = $_SERVER['REQUEST_TIME'];
-      $response->time = time();
+      $smokedFromStopSmokingStart = R::count('smokings', 'userid = ? AND TIMESTAMP >= ? AND TIMESTAMP < ? ORDER BY timestamp DESC', array($userDB->id, $userDB->stop_smoking_start, $startOfToday));
+
       $response->userDataByDays = $userDataByDays;
       $response->lastDays = $userDataByDays;
       $response->weekdaySmokings = $weekdaySmokings;
       $response->byWeekday = $weekdaySmokings;
-      $response->start = $startOfToday;
-      $response->startYest = $startOfToday - 1 * 86400;
-      $response->startplus = $_SERVER['REQUEST_TIME'] + $timeZoneOffsetSec - ($_SERVER['REQUEST_TIME'] + $timeZoneOffsetSec) % 86400;
-      $response->startminus = $_SERVER['REQUEST_TIME'] - $timeZoneOffsetSec - ($_SERVER['REQUEST_TIME'] - $timeZoneOffsetSec) % 86400;
+      $response->stopSmokingStart = $userDB->stop_smoking_start * 1000;
+      $response->stopSmokingFinish = $userDB->stop_smoking_finish * 1000;
+      $response->cigarettesPackPrice = $userDB->cigarettes_pack_price;
+      $response->smokingsCount = $userDB->smokings_count;
+      $response->lastSmokingDate = $userDB->last_smoking_date * 1000;
+      $response->name = $userDB->login;
+      $response->smokedFromStopSmokingStart = $smokedFromStopSmokingStart;
 	  } else {
 	    $response->auth = false;
 	  }; 
@@ -183,6 +198,11 @@ if ($_SERVER[REQUEST_METHOD] == 'POST') {
       $smoking->timestamp = $_SERVER['REQUEST_TIME'];
       $id = R::store($smoking);
 
+      //Запись последнего курения в данные пользователя
+      $updatedUser = R::load('users', $userDB->id);
+      $updatedUser->lastSmokingDate = $_SERVER['REQUEST_TIME'];
+      R::store($updatedUser);
+
       $response->id = $id;
       $response->type = $request['smokingType'];
       $response->timestamp = $_SERVER['REQUEST_TIME'];
@@ -193,10 +213,10 @@ if ($_SERVER[REQUEST_METHOD] == 'POST') {
       $updatedUser = R::load('users', $userDB->id);
       $dateStopSmokingStart = new DateTime($request['stopSmokingStart']);
       $timestampStopSmokingStart = $dateStopSmokingStart->getTimestamp();
-      $updatedUser->stopSmokingStart = $timestampStopSmokingStart;
+      $updatedUser->stopSmokingStart = $timestampStopSmokingStart + ($userDB->time_zone_offset + $serverTimezoneOffsetMin) * 60;
       $dateStopSmokingFinish = new DateTime($request['stopSmokingFinish']);
       $timestampStopSmokingFinish = $dateStopSmokingFinish->getTimestamp();
-      $updatedUser->stopSmokingsFinish = $timestampStopSmokingFinish;
+      $updatedUser->stopSmokingFinish = $timestampStopSmokingFinish + ($userDB->time_zone_offset + $serverTimezoneOffsetMin) * 60;
       $updatedUser->smokingsCount = $request['smokingsCount'];
       $updatedUser->cigarettesPackPrice = $request['cigarettesPackPrice'];
       R::store($updatedUser);

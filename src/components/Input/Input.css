@@ -1,2 +1,18 @@
-.input {
+.form-control {
+  display: block;
+  width: 100%;
+  padding: 0.375rem 0.75rem;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--bs-body-color);
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-color: var(--body-bg);
+  background-clip: padding-box;
+  border-color: var(--input-border-color, var(--border-color, hsl(0, 0%, 80%)));
+  border-style: var(--input-border-style, var(--border-style, solid));
+  border-width: var(--input-border-width, var(--border-width, 0.0625rem));
+  border-radius: var(--border-radius);
 }
