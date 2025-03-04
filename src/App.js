@@ -463,9 +463,7 @@ function App() {
             setStopSmokingForm({ ...stopSmokingForm, isBlocked: false });
           }}
           onSetStopSmoking={handleSetStopSmoking}
-          onGetUserDataLastDays={() => {
-            console.log("unregistred function");
-          }}
+          onGetUserDataLastDays={handleGetUser}
         />
       )}
     </div>

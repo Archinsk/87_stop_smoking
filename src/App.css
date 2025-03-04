@@ -16,29 +16,6 @@
   display: flex;
 }
 
-.cigarette-box {
-  border: 1px solid grey;
-  display: inline-block;
-}
-
-.circle {
-  width: var(--cigarette-diameter);
-  height: var(--cigarette-diameter);
-  margin: calc(var(--cigarette-diameter) / 16);
-  background-color: hsl(0, 0%, 95%);
-  border-radius: 50%;
-  border: 1px solid hsl(0, 0%, 50%);
-}
-
-.circle.smoked {
-  background-color: hsl(0, 0%, 50%);
-}
-
-.hole {
-  width: calc(var(--cigarette-diameter) / 2);
-  height: var(--cigarette-diameter);
-}
-
 .mb-3 {
   margin-bottom: 1rem;
 }

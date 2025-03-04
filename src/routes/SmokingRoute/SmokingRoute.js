@@ -24,6 +24,7 @@ import {
   convertTimestampToTimestampFromDayStart,
   convertTimestampToW,
 } from "../../utils/dateTimeConverters";
+import ObjectView from "../../components/ObjectView/ObjectView";
 
 const SmokingRoute = ({
   form,
@@ -51,26 +52,90 @@ const SmokingRoute = ({
     if (user.stopSmokingStart) {
       const now = new Date();
       const timezoneOffset = now.getTimezoneOffset();
-      const todayStart = now - (now % 86400000) + timezoneOffset * 60 * 1000;
+      const todayStart =
+        now -
+        timezoneOffset * 60 * 1000 -
+        ((now - timezoneOffset * 60 * 1000) % 86400000) +
+        timezoneOffset * 60 * 1000;
       return (todayStart - user.stopSmokingStart) / 86400000;
     }
   }, [user]);
 
+  const isInProgramToday = useMemo(() => {
+    const now = new Date();
+    const timezoneOffset = now.getTimezoneOffset();
+    const todayStart =
+      now -
+      timezoneOffset * 60 * 1000 -
+      ((now - timezoneOffset * 60 * 1000) % 86400000) +
+      timezoneOffset * 60 * 1000;
+    if (user.stopSmokingStart && user.stopSmokingFinish) {
+      if (
+        todayStart >= user.stopSmokingStart &&
+        todayStart < user.stopSmokingFinish
+      ) {
+        return true;
+      }
+    }
+  }, [user]);
+
+  const stopSmokingLength = useMemo(() => {
+    if (user.stopSmokingStart && user.stopSmokingFinish) {
+      return (user.stopSmokingFinish - user.stopSmokingStart) / 86400000;
+    }
+  }, [user]);
+
+  const stopSmokingProgram = useMemo(() => {
+    let programm = [];
+    if (user.stopSmokingStart && user.stopSmokingFinish) {
+      for (let i = 0; i < stopSmokingLength; i++) {
+        programm.push({
+          dayOfProgramm: i + 1,
+          dayStartTimestamp: user.stopSmokingStart + i * 86400000,
+          limit: Math.ceil(
+            user.smokingsCount -
+              1 -
+              ((user.smokingsCount - 1) / stopSmokingLength) * i
+          ),
+        });
+      }
+      return programm;
+    }
+  }, [user, stopSmokingLength]);
+
+  const limitToday = useMemo(() => {
+    const now = new Date();
+    const timezoneOffset = now.getTimezoneOffset();
+    const todayStart =
+      now -
+      timezoneOffset * 60 * 1000 -
+      ((now - timezoneOffset * 60 * 1000) % 86400000) +
+      timezoneOffset * 60 * 1000;
+    if (isInProgramToday) {
+      return stopSmokingProgram.find(
+        (day) => day.dayStartTimestamp === todayStart
+      ).limit;
+    }
+  }, [isInProgramToday]);
+
   const cancelledCigarettes = useMemo(() => {
     if (user.smokedFromStopSmokingStart) {
-      return daysFromStopSmokingStart * 21 - user.smokedFromStopSmokingStart;
+      return (
+        daysFromStopSmokingStart * user.smokingsCount -
+        user.smokedFromStopSmokingStart
+      );
     }
   }, [daysFromStopSmokingStart, user]);
 
   const savedMoney = useMemo(() => {
     if (cancelledCigarettes) {
-      return cancelledCigarettes * oneCigarettePrice;
+      return Math.floor((cancelledCigarettes * oneCigarettePrice) / 1000);
     }
   }, [cancelledCigarettes, oneCigarettePrice]);
 
   const savedTime = useMemo(() => {
     if (cancelledCigarettes) {
-      return cancelledCigarettes * 3;
+      return Math.floor((cancelledCigarettes * 3) / 60);
     }
   }, [cancelledCigarettes]);
 
@@ -81,6 +146,16 @@ const SmokingRoute = ({
   const todaySmokings = useMemo(() => {
     return userDataToday.smokings;
   }, [userDataToday]);
+
+  const smokedToday = useMemo(() => {
+    return todaySmokings.length || 0;
+  }, [todaySmokings]);
+
+  const smokingsAvailable = useMemo(() => {
+    if (limitToday && Number.isInteger(smokedToday)) {
+      return limitToday - smokedToday;
+    }
+  }, [limitToday, smokedToday]);
 
   const userDataLastDaysFromYesterday = useMemo(() => {
     return userDataLastDays.slice(0, -1);
@@ -99,6 +174,31 @@ const SmokingRoute = ({
     }
     return;
   }, [lastDaysSmokingsFromYesterday]);
+
+  const lastDaysSmokingsFromYesterdayColors = useMemo(() => {
+    if (userDataLastDaysFromYesterday && stopSmokingProgram) {
+      return userDataLastDaysFromYesterday.map((day) => {
+        console.log(day);
+        console.log(user);
+        if (
+          day.dayStartTimestamp >= user.stopSmokingStart &&
+          day.dayStartTimestamp < user.stopSmokingFinish
+        ) {
+          const programDay = stopSmokingProgram.find(
+            (dayOfProgram) =>
+              dayOfProgram.dayStartTimestamp === day.dayStartTimestamp
+          );
+          if (day.smokings.length <= programDay.limit) {
+            return "hsl(120, 100%, 35%)";
+          } else {
+            return "hsl(0, 100%, 50%)";
+          }
+        } else {
+          return "hsl(0, 0%, 50%)";
+        }
+      });
+    }
+  }, [user, userDataLastDaysFromYesterday, stopSmokingProgram]);
 
   const lastDaysSmokingsFromYesterdayWeekdays = useMemo(() => {
     if (userDataLastDaysFromYesterday) {
@@ -158,7 +258,7 @@ const SmokingRoute = ({
     datasets: [
       {
         data: lastDaysSmokingsFromYesterdayCounts,
-        backgroundColor: ["hsl(0, 0%, 50%)"],
+        backgroundColor: lastDaysSmokingsFromYesterdayColors,
       },
     ],
   };
@@ -167,27 +267,132 @@ const SmokingRoute = ({
     <div className={`smoking-route${className ? " " + className : ""}`}>
       <Alert className="mb-3">
         <div>
-          Last smoking: {convertTimestampToDMYHMS(user.lastSmokingDate)}
+          Today limit: <b>{limitToday}</b>
         </div>
         <div>
-          Stop smoking start: {convertTimestampToDMYHMS(user.stopSmokingStart)}
+          Smoked today: <b>{smokedToday}</b>
         </div>
         <div>
-          Stop smoking finish:{" "}
-          {convertTimestampToDMYHMS(user.stopSmokingFinish)}
+          Today available: <b>{smokingsAvailable}</b>
         </div>
-        <div>Cigarettes pack price: {user.cigarettesPackPrice}</div>
-        <div>Smokings count: {user.smokingsCount}</div>
         <div>
-          Smoked from stop smoking start to today:{" "}
-          {user.smokedFromStopSmokingStart}
+          Сэкономленные на курении деньги: <b>{savedMoney} тыс.руб.</b>
         </div>
-        <div>One cigarette price: {oneCigarettePrice} rub.</div>
-        <div>Days from stopSmokingStart: {daysFromStopSmokingStart}</div>
-        <div>Отмененные сигареты: {cancelledCigarettes}</div>
-        <div>Сэкономленные на курении деньги: {savedMoney} руб.</div>
-        <div>Сэкономленные на курении время жизни: {savedTime} мин.</div>
+        <div>
+          Сэкономленные на курении время жизни: <b>{savedTime} час.</b>
+        </div>
+        <details>
+          <summary>details</summary>
+          <div>
+            Last smoking: {convertTimestampToDMYHMS(user.lastSmokingDate)}
+          </div>
+          <div>
+            Stop smoking start:{" "}
+            {convertTimestampToDMYHMS(user.stopSmokingStart)}
+          </div>
+          <div>
+            Stop smoking finish:{" "}
+            {convertTimestampToDMYHMS(user.stopSmokingFinish)}
+          </div>
+          <div>Stop smoking length: {stopSmokingLength}</div>
+          <div>
+            <ObjectView
+              objectData={{ "Stop smoking array ": stopSmokingProgram }}
+            />
+          </div>
+          <div>Today in program: {isInProgramToday ? "true" : "false"}</div>
+
+          <div>Cigarettes pack price: {user.cigarettesPackPrice}</div>
+          <div>Smokings count: {user.smokingsCount}</div>
+          <div>
+            Smoked from stop smoking start to today:{" "}
+            {user.smokedFromStopSmokingStart}
+          </div>
+          <div>One cigarette price: {oneCigarettePrice} rub.</div>
+          <div>Days from stopSmokingStart: {daysFromStopSmokingStart}</div>
+          <div>Отмененные сигареты: {cancelledCigarettes}</div>
+        </details>
       </Alert>
+
+      {/* <div className="alert">
+        Для достижения результата начните фиксировать каждую выкуриваемую
+        сигарету и стик в момент начала курения. Рекомендации появятся после
+        трех дней ведения сттистики
+      </div>
+      <div className="alert">
+        Рекомендуется исключить курение в период с ... по ...
+      </div>
+      <div className="alert">
+        В течение ... дней выкуривается не более ... сигарет/стиков
+      </div>
+      <div className="alert">
+        Съэкономлено ... рублей на покупке сигарет/стиков, ... минут жизни,
+        ранее затрачиваемых на курение
+      </div>
+      <div className="alert">Вы не курите ... дней</div>
+
+      <div>
+        <div>latitude : {geoPosition.lat}</div>
+        <div>longitude : {geoPosition.long}</div>
+      </div> */}
+      <div className="mb-3">
+        <Button
+          type="button"
+          onClick={() => {
+            onSetSmoking("cigarette");
+          }}
+        >
+          Cigarette
+        </Button>
+        <Button
+          type="button"
+          onClick={() => {
+            onSetSmoking("stick");
+          }}
+        >
+          Stick
+        </Button>
+      </div>
+
+      {todaySmokings && (
+        <CigarettesPack todaySmokings={todaySmokings} limitToday={limitToday} />
+      )}
+
+      <Bar data={barChartData} />
+
+      {/* <Bubble
+        options={{
+          scales: {
+            y: {
+              beginAtZero: true,
+            },
+          },
+        }}
+        data={data}
+      /> */}
+      <div>
+        <Button
+          onClick={() => {
+            onGetUserDataLastDays({
+              days: 7,
+              weekdays: 4,
+            });
+          }}
+        >
+          7 days
+        </Button>
+        <Button
+          onClick={() => {
+            onGetUserDataLastDays({
+              days: 28,
+              weekdays: 4,
+            });
+          }}
+        >
+          28 days
+        </Button>
+      </div>
+
       <h2>Окончание курения</h2>
       <form className="mb-3">
         <Input
@@ -230,103 +435,6 @@ const SmokingRoute = ({
           Переустановить
         </Button>
       </div>
-      {/* <div className="alert">
-        Для достижения результата начните фиксировать каждую выкуриваемую
-        сигарету и стик в момент начала курения. Рекомендации появятся после
-        трех дней ведения сттистики
-      </div>
-      <div className="alert">
-        Рекомендуется исключить курение в период с ... по ...
-      </div>
-      <div className="alert">
-        В течение ... дней выкуривается не более ... сигарет/стиков
-      </div>
-      <div className="alert">
-        Съэкономлено ... рублей на покупке сигарет/стиков, ... минут жизни,
-        ранее затрачиваемых на курение
-      </div>
-      <div className="alert">Вы не курите ... дней</div>
-
-      <div>
-        <div>latitude : {geoPosition.lat}</div>
-        <div>longitude : {geoPosition.long}</div>
-      </div> */}
-      <div className="mb-3">
-        <Button
-          type="button"
-          onClick={() => {
-            onSetSmoking("cigarette");
-          }}
-        >
-          Cigarette
-        </Button>
-        <Button
-          type="button"
-          onClick={() => {
-            onSetSmoking("stick");
-          }}
-        >
-          Stick
-        </Button>
-      </div>
-
-      {todaySmokings && <CigarettesPack todaySmokings={todaySmokings} />}
-
-      <Bar data={barChartData} />
-
-      <Bubble
-        options={{
-          scales: {
-            y: {
-              beginAtZero: true,
-            },
-          },
-        }}
-        data={data}
-      />
-      <div>
-        <Button
-          onClick={() => {
-            onGetUserDataLastDays(7);
-          }}
-        >
-          7 days
-        </Button>
-        <Button
-          onClick={() => {
-            onGetUserDataLastDays(28);
-          }}
-        >
-          28 days
-        </Button>
-      </div>
-
-      <hr />
-      <h3>byDaysSmoking</h3>
-      {userDataLastDays &&
-        userDataLastDays.map((day, index) => {
-          return (
-            <div className="one-day">
-              <div>
-                <b>{convertTimestampToDMY(day.dayStartTimestamp)}</b>
-              </div>
-              <Table
-                data={[
-                  [
-                    { tag: "th", content: "Время" },
-                    { tag: "th", content: "Тип" },
-                  ],
-                  ...day.smokings.map((smoking) => {
-                    return [
-                      convertTimestampToHMS(smoking.timestamp),
-                      smoking.type,
-                    ];
-                  }),
-                ]}
-              />
-            </div>
-          );
-        })}
 
       <hr />
       <h3>weekdaySmokings</h3>
@@ -334,23 +442,25 @@ const SmokingRoute = ({
         userDataByWeekday.map((day, index) => {
           return (
             <div className="one-day">
-              <div>
-                <b>{convertTimestampToDMY(day.dayStartTimestamp)}</b>
-              </div>
-              <Table
-                data={[
-                  [
-                    { tag: "th", content: "Время" },
-                    { tag: "th", content: "Тип" },
-                  ],
-                  ...day.smokings.map((smoking) => {
-                    return [
-                      convertTimestampToHMS(smoking.timestamp),
-                      smoking.type,
-                    ];
-                  }),
-                ]}
-              />
+              <details key={index}>
+                <summary>
+                  <b>{convertTimestampToDMY(day.dayStartTimestamp)}</b>
+                </summary>
+                <Table
+                  data={[
+                    [
+                      { tag: "th", content: "Время" },
+                      { tag: "th", content: "Тип" },
+                    ],
+                    ...day.smokings.map((smoking) => {
+                      return [
+                        convertTimestampToHMS(smoking.timestamp),
+                        smoking.type,
+                      ];
+                    }),
+                  ]}
+                />
+              </details>
             </div>
           );
         })}

@@ -1,0 +1,38 @@
+.cigarette-box {
+  --cigarette-diameter: 10vw;
+  border: 1px solid grey;
+  display: inline-block;
+}
+
+@media (width > 1100px) {
+  .cigarette-box {
+    --cigarette-diameter: 2rem;
+  }
+}
+
+.circle {
+  width: var(--cigarette-diameter);
+  height: var(--cigarette-diameter);
+  margin: calc(var(--cigarette-diameter) / 16);
+  background-color: hsl(0, 0%, 95%);
+  border-radius: 50%;
+  border: 1px solid hsl(0, 0%, 50%);
+}
+
+.circle.smoked {
+  background-color: hsl(0, 0%, 50%);
+}
+
+.hole {
+  width: calc(var(--cigarette-diameter) / 16 * 9);
+  height: calc(var(--cigarette-diameter) / 16 * 18);
+}
+
+.circle-background.forbidden,
+.hole.forbidden {
+  background-color: hsl(0, 100%, 80%);
+}
+
+.circle-background.forbidden .circle.smoked {
+  background-color: hsl(0, 100%, 50%);
+}
