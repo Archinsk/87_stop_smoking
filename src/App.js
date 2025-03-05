@@ -277,6 +277,10 @@ function App() {
     });
     setUserWeightsLastDays(response);
     saveResponse(response);
+    handleGetUser({
+      days: 7,
+      weekdays: 4,
+    });
   };
 
   const handleSetSmoking = async (smokingType) => {
@@ -284,8 +288,11 @@ function App() {
       smokingType: smokingType,
       userid,
     });
-    handleGetUser(response);
     saveResponse(response);
+    handleGetUser({
+      days: 7,
+      weekdays: 4,
+    });
   };
 
   const handleResetStopSmoking = () => {

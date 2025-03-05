@@ -267,6 +267,9 @@ const SmokingRoute = ({
     <div className={`smoking-route${className ? " " + className : ""}`}>
       <Alert className="mb-3">
         <div>
+          Last smoking: {convertTimestampToDMYHMS(user.lastSmokingDate)}
+        </div>
+        <div>
           Today limit: <b>{limitToday}</b>
         </div>
         <div>
@@ -283,9 +286,7 @@ const SmokingRoute = ({
         </div>
         <details>
           <summary>details</summary>
-          <div>
-            Last smoking: {convertTimestampToDMYHMS(user.lastSmokingDate)}
-          </div>
+
           <div>
             Stop smoking start:{" "}
             {convertTimestampToDMYHMS(user.stopSmokingStart)}
