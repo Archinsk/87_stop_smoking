@@ -33,6 +33,12 @@
   background-color: hsl(0, 100%, 80%);
 }
 
+.circle-background.forbidden .circle {
+  background-color: unset;
+  border-color: white;
+  border-style: dashed;
+}
+
 .circle-background.forbidden .circle.smoked {
   background-color: hsl(0, 100%, 50%);
 }

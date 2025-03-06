@@ -26,7 +26,7 @@ const RequestRoute = ({
         <Button onClick={onLogout}>LogOut</Button>
         {/* <Button onClick={handleGetGeoPosition}>GetGeo</Button> */}
       </div>
-      {responses && <ObjectView objectData={{ responses }} />}
+      {responses && <ObjectView objectData={{ requestsHistory: responses }} />}
       {!responses && <div>No Response Data</div>}
     </div>
   );

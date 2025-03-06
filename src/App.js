@@ -220,6 +220,7 @@ function App() {
   };
 
   const handleGetUser = async (queriesObject) => {
+    const beforeRequest = Date.now();
     const response = await getRequest(url, "user", {
       ...queriesObject,
       userid,
@@ -236,7 +237,9 @@ function App() {
       smokedFromStopSmokingStart: response.smokedFromStopSmokingStart,
       name: response.name,
     });
-    saveResponse(response);
+    const afterResponse = Date.now();
+    const responseTime = afterResponse - beforeRequest + "ms";
+    saveResponse({ ...response, responseTime });
   };
 
   const handleResetRegistration = () => {
@@ -284,11 +287,14 @@ function App() {
   };
 
   const handleSetSmoking = async (smokingType) => {
+    const beforeRequest = Date.now();
     const response = await postRequest(url, "smoking", {
       smokingType: smokingType,
       userid,
     });
-    saveResponse(response);
+    const afterResponse = Date.now();
+    const responseTime = afterResponse - beforeRequest + "ms";
+    saveResponse({ ...response, responseTime });
     handleGetUser({
       days: 7,
       weekdays: 4,
@@ -356,6 +362,7 @@ function App() {
       }
     );
   }; */
+  console.log("redraw App");
 
   return (
     <div className="app">

@@ -10,8 +10,8 @@ const Table = ({ data, className, children, ...props }) => {
           <TableCell
             tag={cellData.tag}
             key={index}
-            colspan={cellData.colspan}
-            rowspan={cellData.rowspan}
+            colSpan={cellData.colspan}
+            rowSpan={cellData.rowspan}
             scope={cellData.scope}
           >
             {cellData.content || cellData}

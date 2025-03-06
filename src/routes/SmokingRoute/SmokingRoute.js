@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import "./SmokingRoute.css";
 import Input from "../../components/Input/Input";
 import Button from "../../components/Button/Button";
@@ -42,6 +42,7 @@ const SmokingRoute = ({
   onGetUserDataLastDays,
   className,
 }) => {
+  const [showStopSmokingForm, setShowSmokingForm] = useState(true);
   const oneCigarettePrice = useMemo(() => {
     if (user.cigarettesPackPrice) {
       return (user.cigarettesPackPrice / 20).toFixed(2);
@@ -178,8 +179,6 @@ const SmokingRoute = ({
   const lastDaysSmokingsFromYesterdayColors = useMemo(() => {
     if (userDataLastDaysFromYesterday && stopSmokingProgram) {
       return userDataLastDaysFromYesterday.map((day) => {
-        console.log(day);
-        console.log(user);
         if (
           day.dayStartTimestamp >= user.stopSmokingStart &&
           day.dayStartTimestamp < user.stopSmokingFinish
@@ -286,7 +285,6 @@ const SmokingRoute = ({
         </div>
         <details>
           <summary>details</summary>
-
           <div>
             Stop smoking start:{" "}
             {convertTimestampToDMYHMS(user.stopSmokingStart)}
@@ -394,56 +392,60 @@ const SmokingRoute = ({
         </Button>
       </div>
 
-      <h2>Окончание курения</h2>
-      <form className="mb-3">
-        <Input
-          label="Дата начала бросания"
-          id="stopSmokingStart"
-          type="date"
-          onChange={onChangeStopSmokingStart}
-          value={form.login}
-        />
-        <Input
-          label="Дата окончания бросания"
-          id="stopSmokingFinish"
-          type="date"
-          onChange={onChangeStopSmokingFinish}
-          value={form.login}
-        />
-        <Input
-          label="Количество выкуриваемых сигарет/стиков в день"
-          id="smokingsCount"
-          type="number"
-          onChange={onChangeSmokingsCount}
-          value={form.login}
-        />
-        <Input
-          label="Стоимость 1 пачки сигарет/стиков"
-          id="cigarettesPackPrice"
-          type="number"
-          onChange={onChangeCigarettesPackPrice}
-          value={form.login}
-        />
-      </form>
-      <div>
-        <Button type="button" onClick={onResetForm}>
-          Отмена
-        </Button>
-        <Button type="button" onClick={onSetStopSmoking}>
-          Отправить
-        </Button>
-        <Button type="button" onClick={onSetStopSmoking}>
-          Переустановить
-        </Button>
-      </div>
+      {showStopSmokingForm && !isInProgramToday && (
+        <>
+          <h2>Окончание курения</h2>
+          <form className="mb-3">
+            <Input
+              label="Дата начала бросания"
+              id="stopSmokingStart"
+              type="date"
+              onChange={onChangeStopSmokingStart}
+              value={form.login}
+            />
+            <Input
+              label="Дата окончания бросания"
+              id="stopSmokingFinish"
+              type="date"
+              onChange={onChangeStopSmokingFinish}
+              value={form.login}
+            />
+            <Input
+              label="Количество выкуриваемых сигарет/стиков в день"
+              id="smokingsCount"
+              type="number"
+              onChange={onChangeSmokingsCount}
+              value={form.login}
+            />
+            <Input
+              label="Стоимость 1 пачки сигарет/стиков"
+              id="cigarettesPackPrice"
+              type="number"
+              onChange={onChangeCigarettesPackPrice}
+              value={form.login}
+            />
+          </form>
+          <div>
+            <Button type="button" onClick={onResetForm}>
+              Отмена
+            </Button>
+            <Button type="button" onClick={onSetStopSmoking}>
+              Отправить
+            </Button>
+            <Button type="button" onClick={onSetStopSmoking}>
+              Переустановить
+            </Button>
+          </div>
+        </>
+      )}
 
       <hr />
       <h3>weekdaySmokings</h3>
       {userDataByWeekday &&
         userDataByWeekday.map((day, index) => {
           return (
-            <div className="one-day">
-              <details key={index}>
+            <div className="one-day" key={index}>
+              <details>
                 <summary>
                   <b>{convertTimestampToDMY(day.dayStartTimestamp)}</b>
                 </summary>
