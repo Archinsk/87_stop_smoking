@@ -227,6 +227,28 @@ if ($_SERVER[REQUEST_METHOD] == 'POST') {
       $response->userUpdated = true;
     };
 
+    //set-sleeping - установка данных о сне
+    if ($_SERVER[PATH_INFO] == '/sleeping') {
+      $sleeping = R::dispense('sleepings');
+      $sleeping->userid = $userDB->id;
+      if ($request['startDatetime']) {
+        $date = new DateTime($request['startDatetime']);
+        $timestamp = $date->getTimestamp();
+        $offset = ($userDB->time_zone_offset + $serverTimezoneOffsetMin) * 60;
+        $timestampWithOffset = $timestamp + $offset;
+        $sleeping->startTimestamp = $timestampWithOffset;
+      };
+      if ($request['finishDatetime']) {
+        $date = new DateTime($request['finishDatetime']);
+        $timestamp = $date->getTimestamp();
+        $offset = ($userDB->time_zone_offset + $serverTimezoneOffsetMin) * 60;
+        $timestampWithOffset = $timestamp + $offset;
+        $sleeping->finishDatetime = $timestampWithOffset;
+      }
+      R::store($sleeping);
+      $response->sleepingCreated = true;
+    };
+
     //auth - авторизация
     if ($_SERVER[PATH_INFO] == '/auth') {
       if ( password_verify($request['password'], $userDB->password) ) {
