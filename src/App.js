@@ -8,6 +8,7 @@ import RequestRoute from "./routes/RequestRoute/RequestRoute";
 import SmokingRoute from "./routes/SmokingRoute/SmokingRoute";
 import Alert from "./components/Alert/Alert";
 import { getRequest, postRequest } from "./utils/RESTAPI";
+import SleepingRoute from "./routes/SleepingRoute/SleepingRoute";
 
 function App() {
   const [route, setRoute] = useState("loading-route");
@@ -286,6 +287,12 @@ function App() {
     });
   };
 
+  const handleSetSleeping = async () => {
+    const response = await postRequest(url, "sleeping", {});
+    setUserWeightsLastDays(response);
+    saveResponse(response);
+  };
+
   const handleSetSmoking = async (smokingType) => {
     const beforeRequest = Date.now();
     const response = await postRequest(url, "smoking", {
@@ -371,6 +378,7 @@ function App() {
       <div className="navbar mb-3">
         <Button onClick={() => setRoute("smoking-route")}>Smoking</Button>
         <Button onClick={() => setRoute("weight-route")}>Weight</Button>
+        <Button onClick={() => setRoute("sleeping-route")}>Sleeping</Button>
         <Button onClick={() => setRoute("auth-route")}>Auth</Button>
         <Button onClick={() => setRoute("request-route")}>Request</Button>
       </div>
@@ -421,6 +429,9 @@ function App() {
           }}
           onSetWeight={handleSetWeight}
         />
+      )}
+      {route === "sleeping-route" && (
+        <SleepingRoute onSetSleeping={handleSetSleeping} />
       )}
       {route === "request-route" && (
         <RequestRoute
