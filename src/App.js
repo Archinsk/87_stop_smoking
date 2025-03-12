@@ -243,6 +243,18 @@ function App() {
     saveResponse({ ...response, responseTime });
   };
 
+  const handleGetEvents = async (queriesObject) => {
+    //const beforeRequest = Date.now();
+    const response = await getRequest(url, "events", {
+      ...queriesObject,
+      userid,
+    });
+    //setUserDataLastDays(response.lastDays);
+    //const afterResponse = Date.now();
+    //const responseTime = afterResponse - beforeRequest + "ms";
+    saveResponse({ ...response });
+  };
+
   const handleResetRegistration = () => {
     setRegForm({
       ...regForm,
@@ -287,9 +299,12 @@ function App() {
     });
   };
 
-  const handleSetSleeping = async () => {
-    const response = await postRequest(url, "sleeping", {});
-    setUserWeightsLastDays(response);
+  const handleSetSleeping = async (sleepingData) => {
+    const response = await postRequest(url, "event", {
+      ...sleepingData,
+      eventType: "sleeping",
+      userid,
+    });
     saveResponse(response);
   };
 
@@ -336,6 +351,10 @@ function App() {
         await handleGetUser({
           days: 7,
           weekdays: 4,
+        });
+        await handleGetEvents({
+          eventtype: "sleeping",
+          days: 28,
         });
         setRoute(defaultAuthRoute);
       } else {

@@ -146,6 +146,41 @@ if ($_SERVER[REQUEST_METHOD] == 'GET') {
 	    $response->auth = false;
 	  }; 
   };
+
+  //get-events - данные пользователя о событиях с началом и концом по времени
+  if ($_SERVER[PATH_INFO] == '/events') {
+    if ($userDB) {
+      $timeZoneOffsetSec = $userDB->time_zone_offset * 60;
+      $startOfGMTToday = $_SERVER['REQUEST_TIME'] - $timeZoneOffsetSec - ($_SERVER['REQUEST_TIME'] - $timeZoneOffsetSec) % 86400;
+      $startOfToday = $startOfGMTToday + $timeZoneOffsetSec;
+      
+      $days = $queries['days'];
+
+      //get-events-sleeping - данные пользователя периодах сна
+      if ($queries['eventtype'] == 'sleeping') {
+        $userDataByDays = array();
+        for ($i = $days; $i > 0; $i--) {
+          $oneDayDB = R::find('events', 'userid = ? AND TYPE = ? AND FINISH_TIMESTAMP >= ? AND START_TIMESTAMP < ? ORDER BY timestamp DESC', array($userDB->id, $request['eventType'], $startOfToday - $i * 86400, $startOfToday - ($i - 1) * 86400));
+          $oneDayEvents = array();
+          foreach( $oneDayDB as $item) {
+            $event = new stdClass();
+            $event->id = $item->id;
+            $event->type = $item->type;
+            $event->startTimestamp = $item->start_timestamp * 1000;
+            $event->finishTimestamp = $item->start_timestamp * 1000;
+            array_push($oneDay, $event);
+          };
+          $oneDay = new stdClass();
+          $oneDay->dayStartTimestamp = ($startOfToday - $i * 86400) * 1000;
+          $oneDay->events = $oneDayEvents;
+          array_push($userDataByDays, $oneDay);
+        };
+        $response->sleepingsByDays = $userDataByDays;
+      };
+	  } else {
+	    $response->auth = false;
+	  }; 
+  };
   
   //get-userId - идентификатор текущего пользователя
   if ($_SERVER[PATH_INFO] == '/userid') {
@@ -229,8 +264,8 @@ if ($_SERVER[REQUEST_METHOD] == 'POST') {
 
     //set-event - установка данных о событии
     if ($_SERVER[PATH_INFO] == '/event') {
+      //set-event-sleeping - установка данных о сне
       if ($request['eventType'] == 'sleeping') {
-        //set-event-sleeping - установка данных о сне
         $sleeping = R::dispense('events');
         $sleeping->userid = $userDB->id;
         $sleeping->type = $request['eventType'];
