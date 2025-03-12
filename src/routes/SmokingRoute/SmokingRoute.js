@@ -390,6 +390,16 @@ const SmokingRoute = ({
         >
           28 days
         </Button>
+        <Button
+          onClick={() => {
+            onGetUserDataLastDays({
+              days: 60,
+              weekdays: 4,
+            });
+          }}
+        >
+          60 days
+        </Button>
       </div>
 
       {showStopSmokingForm && !isInProgramToday && (
@@ -467,6 +477,37 @@ const SmokingRoute = ({
             </div>
           );
         })}
+
+      <hr />
+      <h3>dayByDaySmokings</h3>
+      {userDataLastDays &&
+        userDataLastDays
+          .filter((day) => day.smokings.length)
+          .map((day, index) => {
+            return (
+              <div className="one-day" key={index}>
+                <details>
+                  <summary>
+                    <b>{convertTimestampToDMY(day.dayStartTimestamp)}</b>
+                  </summary>
+                  <Table
+                    data={[
+                      [
+                        { tag: "th", content: "Время" },
+                        { tag: "th", content: "Тип" },
+                      ],
+                      ...day.smokings.map((smoking) => {
+                        return [
+                          convertTimestampToHMS(smoking.timestamp),
+                          smoking.type,
+                        ];
+                      }),
+                    ]}
+                  />
+                </details>
+              </div>
+            );
+          })}
     </div>
   );
 };
