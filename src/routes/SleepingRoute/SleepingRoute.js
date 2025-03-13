@@ -20,6 +20,17 @@ import {
   convertTimestampToDMY,
   convertTimestampToHMS,
 } from "../../utils/dateTimeConverters";
+import { Bar } from "react-chartjs-2";
+import {
+  Chart,
+  BarElement,
+  CategoryScale,
+  Legend,
+  LinearScale,
+  PointElement,
+  Title,
+  Tooltip,
+} from "chart.js";
 
 const SleepingRoute = ({ sleepingsByDays, onSetSleeping, className }) => {
   const { register, control, reset, handleSubmit } = useForm({
@@ -33,6 +44,60 @@ const SleepingRoute = ({ sleepingsByDays, onSetSleeping, className }) => {
     onSetSleeping(formData);
     reset();
   };
+
+  const sleepingsByDaysFromYesterday = useMemo(() => {
+    return sleepingsByDays.slice(0, -1).filter((day) => {
+      return day.events.length;
+    });
+  }, [sleepingsByDays]);
+
+  const sleepingsLengthByDaysFromYesterday = useMemo(() => {
+    return sleepingsByDaysFromYesterday.map((day) => {
+      let hours = 0;
+      if (day.events.length) {
+        day.events.forEach((event) => {
+          hours += +(
+            (event.finishTimestamp - event.startTimestamp) /
+            1000 /
+            60 /
+            60
+          ).toFixed(2);
+        });
+      }
+      return {
+        date: convertTimestampToDMY(day.dayStartTimestamp),
+        sleepingHours: hours,
+      };
+    });
+  }, [sleepingsByDaysFromYesterday]);
+
+  const lastSleeping = useMemo(() => {
+    if (sleepingsByDays.length) {
+      const notEmptyDays = sleepingsByDays.filter((day) => {
+        return day.events.length;
+      });
+      const lastSleepingDay = notEmptyDays[notEmptyDays.length - 1];
+      return lastSleepingDay.events[lastSleepingDay.events.length - 1];
+    }
+  }, [sleepingsByDays]);
+
+  const isLastSleepingStartTimestamp = useMemo(() => {
+    return !!lastSleeping.startTimestamp;
+  }, [lastSleeping]);
+
+  const isLastSleepingFinishTimestamp = useMemo(() => {
+    return !!lastSleeping.finishTimestamp;
+  }, [lastSleeping]);
+
+  Chart.register(
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    Title,
+    Tooltip,
+    Legend,
+    PointElement
+  );
 
   /* const { register, handleSubmit, control, watch } = useForm({
     defaultValues: {
@@ -103,33 +168,57 @@ const SleepingRoute = ({ sleepingsByDays, onSetSleeping, className }) => {
           <Button type="submit">Сохранить</Button>
         </div>
       </form>
-      <h3>sleepingsByDays</h3>
-      {sleepingsByDays &&
-        sleepingsByDays.map((day, index) => {
-          return (
-            <div className="one-day" key={index}>
-              <details open={day.events.length}>
-                <summary>
-                  <b>{convertTimestampToDMY(day.dayStartTimestamp)}</b>
-                </summary>
-                <Table
-                  data={[
-                    [
-                      { tag: "th", content: "Начало" },
-                      { tag: "th", content: "Окончание" },
-                    ],
-                    ...day.events.map((event) => {
-                      return [
-                        convertTimestampToHMS(event.startTimestamp),
-                        convertTimestampToHMS(event.finishTimestamp),
-                      ];
-                    }),
-                  ]}
-                />
-              </details>
-            </div>
-          );
-        })}
+
+      {sleepingsLengthByDaysFromYesterday?.length && (
+        <Bar
+          data={{
+            labels: sleepingsLengthByDaysFromYesterday.map((day) => {
+              return day.date;
+            }),
+            datasets: [
+              {
+                data: sleepingsLengthByDaysFromYesterday.map(
+                  (day) => day.sleepingHours
+                ),
+                backgroundColor: "hsl(0, 0%, 50%)",
+              },
+            ],
+          }}
+        />
+      )}
+
+      <details>
+        <summary>
+          <h3 className="d-inline-block">sleepingsByDays</h3>
+        </summary>
+        {sleepingsByDays &&
+          sleepingsByDays.map((day, index) => {
+            return (
+              <div className="one-day" key={index}>
+                <details>
+                  <summary>
+                    <b>{convertTimestampToDMY(day.dayStartTimestamp)}</b>
+                  </summary>
+                  <Table
+                    data={[
+                      [
+                        { tag: "th", content: "Начало" },
+                        { tag: "th", content: "Окончание" },
+                      ],
+                      ...day.events.map((event) => {
+                        return [
+                          convertTimestampToHMS(event.startTimestamp),
+                          convertTimestampToHMS(event.finishTimestamp),
+                        ];
+                      }),
+                    ]}
+                  />
+                </details>
+              </div>
+            );
+          })}
+      </details>
+
       <DevTool control={control} />
     </div>
   );

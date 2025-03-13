@@ -13,7 +13,7 @@ import SleepingRoute from "./routes/SleepingRoute/SleepingRoute";
 function App() {
   const [route, setRoute] = useState("loading-route");
   const defaultGuestRoute = "auth-route";
-  const defaultAuthRoute = "sleeping-route";
+  const defaultAuthRoute = "smoking-route";
   const [authForm, setAuthForm] = useState({ login: "", password: "" });
   const [regForm, setRegForm] = useState({
     login: "",
@@ -47,6 +47,7 @@ function App() {
   const [userDataByWeekday, setUserDataByWeekday] = useState(null);
   const [userWeightsLastDays, setUserWeightsLastDays] = useState(null);
   const [sleepingsByDays, setSleepingsByDays] = useState(null);
+  const sleepingStatsDays = 29;
   //-----------------------------------------------------------------
   const [userDataByDays, setUserDataByDays] = useState(null);
   const [daysOfStat, setDaysOfStat] = useState(7);
@@ -307,8 +308,10 @@ function App() {
     const response = await postRequest(url, "event", {
       ...sleepingData,
       eventType: "sleeping",
+      days: sleepingStatsDays,
       userid,
     });
+    setSleepingsByDays(response.eventsByDays);
     saveResponse(response);
   };
 
