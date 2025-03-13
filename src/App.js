@@ -13,7 +13,7 @@ import SleepingRoute from "./routes/SleepingRoute/SleepingRoute";
 function App() {
   const [route, setRoute] = useState("loading-route");
   const defaultGuestRoute = "auth-route";
-  const defaultAuthRoute = "smoking-route";
+  const defaultAuthRoute = "sleeping-route";
   const [authForm, setAuthForm] = useState({ login: "", password: "" });
   const [regForm, setRegForm] = useState({
     login: "",
@@ -46,6 +46,7 @@ function App() {
   const [userDataLastDays, setUserDataLastDays] = useState(null);
   const [userDataByWeekday, setUserDataByWeekday] = useState(null);
   const [userWeightsLastDays, setUserWeightsLastDays] = useState(null);
+  const [sleepingsByDays, setSleepingsByDays] = useState(null);
   //-----------------------------------------------------------------
   const [userDataByDays, setUserDataByDays] = useState(null);
   const [daysOfStat, setDaysOfStat] = useState(7);
@@ -249,6 +250,9 @@ function App() {
       ...queriesObject,
       userid,
     });
+    if (response.eventType === "sleeping") {
+      setSleepingsByDays(response.eventsByDays);
+    }
     //setUserDataLastDays(response.lastDays);
     //const afterResponse = Date.now();
     //const responseTime = afterResponse - beforeRequest + "ms";
@@ -354,7 +358,7 @@ function App() {
         });
         await handleGetEvents({
           eventtype: "sleeping",
-          days: 28,
+          days: 29,
         });
         setRoute(defaultAuthRoute);
       } else {
@@ -450,7 +454,10 @@ function App() {
         />
       )}
       {route === "sleeping-route" && (
-        <SleepingRoute onSetSleeping={handleSetSleeping} />
+        <SleepingRoute
+          sleepingsByDays={sleepingsByDays}
+          onSetSleeping={handleSetSleeping}
+        />
       )}
       {route === "request-route" && (
         <RequestRoute

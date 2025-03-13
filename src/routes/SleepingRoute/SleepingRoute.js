@@ -15,9 +15,19 @@ import {
 } from "@mui/material";
 import MuiSelect from "../../components/MuiSelect/MuiSelect";
 import MuiRadioGroup from "../../components/MuiRadioGroup/MuiRadioGroupt";
+import Table from "../../components/Table/Table";
+import {
+  convertTimestampToDMY,
+  convertTimestampToHMS,
+} from "../../utils/dateTimeConverters";
 
-const SleepingRoute = ({ onSetSleeping, className }) => {
-  const { register, control, reset, handleSubmit } = useForm();
+const SleepingRoute = ({ sleepingsByDays, onSetSleeping, className }) => {
+  const { register, control, reset, handleSubmit } = useForm({
+    defaultValues: {
+      startDatetimeLocal: "",
+      finishDatetimeLocal: "",
+    },
+  });
 
   const onSubmit = (formData) => {
     onSetSleeping(formData);
@@ -93,6 +103,33 @@ const SleepingRoute = ({ onSetSleeping, className }) => {
           <Button type="submit">Сохранить</Button>
         </div>
       </form>
+      <h3>sleepingsByDays</h3>
+      {sleepingsByDays &&
+        sleepingsByDays.map((day, index) => {
+          return (
+            <div className="one-day" key={index}>
+              <details open={day.events.length}>
+                <summary>
+                  <b>{convertTimestampToDMY(day.dayStartTimestamp)}</b>
+                </summary>
+                <Table
+                  data={[
+                    [
+                      { tag: "th", content: "Начало" },
+                      { tag: "th", content: "Окончание" },
+                    ],
+                    ...day.events.map((event) => {
+                      return [
+                        convertTimestampToHMS(event.startTimestamp),
+                        convertTimestampToHMS(event.finishTimestamp),
+                      ];
+                    }),
+                  ]}
+                />
+              </details>
+            </div>
+          );
+        })}
       <DevTool control={control} />
     </div>
   );
