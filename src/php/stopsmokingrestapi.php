@@ -147,6 +147,36 @@ if ($_SERVER[REQUEST_METHOD] == 'GET') {
 	  }; 
   };
 
+  //get-weights - данные о весе пользователя
+  if ($_SERVER[PATH_INFO] == '/weights') {
+    if ($userDB) {
+      $timeZoneOffsetSec = $userDB->time_zone_offset * 60;
+      $startOfGMTToday = $_SERVER['REQUEST_TIME'] - $timeZoneOffsetSec - ($_SERVER['REQUEST_TIME'] - $timeZoneOffsetSec) % 86400;
+      $startOfToday = $startOfGMTToday + $timeZoneOffsetSec;
+
+      $days = $queries['days'];
+
+      $userDataByDays = array();
+      for ($i = $days - 1; $i >= 0; $i--) {
+        $oneDayDB = R::find('weights', 'userid = ? AND timestamp >= ? AND timestamp < ? ORDER BY timestamp ASC', array($userDB->id, $startOfToday - $i * 86400, $startOfToday - ($i - 1) * 86400));
+        $oneDayEvents = array();
+        foreach( $oneDayDB as $item) {
+          $event = new stdClass();
+          $event->id = $item->id;
+          $event->weight = $item->weight;
+          $event->timestamp = $item->timestamp * 1000;
+          array_push($oneDayEvents, $event);
+        };
+        $oneDay = new stdClass();
+        $oneDay->dayStartTimestamp = ($startOfToday - $i * 86400) * 1000;
+        $oneDay->events = $oneDayEvents;
+        array_push($userDataByDays, $oneDay);
+        $response->eventsByDays = $userDataByDays;
+        $response->eventType = 'weight';
+      };
+	  }; 
+  };
+
   //get-events - данные пользователя о событиях с началом и концом по времени
   if ($_SERVER[PATH_INFO] == '/events') {
     if ($userDB) {
@@ -224,10 +254,26 @@ if ($_SERVER[REQUEST_METHOD] == 'POST') {
       $weight->weight = $request['weight'];
       $weight->timestamp = $_SERVER['REQUEST_TIME'];
       $id = R::store($weight);
-
-      $response->id = $id;
-      $response->weight = $request['weight'];
-      $response->timestamp = $time;
+      //Формирование ответа
+      $days = $request['days'];
+      $userDataByDays = array();
+      for ($i = $days - 1; $i >= 0; $i--) {
+        $oneDayDB = R::find('weights', 'userid = ? AND timestamp >= ? AND timestamp < ? ORDER BY timestamp ASC', array($userDB->id, $startOfToday - $i * 86400, $startOfToday - ($i - 1) * 86400));
+        $oneDayEvents = array();
+        foreach( $oneDayDB as $item) {
+          $event = new stdClass();
+          $event->id = $item->id;
+          $event->weight = $item->weight;
+          $event->timestamp = $item->timestamp * 1000;
+          array_push($oneDayEvents, $event);
+        };
+        $oneDay = new stdClass();
+        $oneDay->dayStartTimestamp = ($startOfToday - $i * 86400) * 1000;
+        $oneDay->events = $oneDayEvents;
+        array_push($userDataByDays, $oneDay);
+        $response->eventsByDays = $userDataByDays;
+        $response->eventType = 'weight';
+      };
     };
     
     //set-smoking - запись курения
@@ -289,6 +335,7 @@ if ($_SERVER[REQUEST_METHOD] == 'POST') {
           $sleeping->finishTimestamp = $timestampWithOffset;
         };
         R::store($sleeping);
+        //Формирование ответа
         $days = $request['days'];
         $userDataByDays = array();
         for ($i = $days - 1; $i >= 0; $i--) {

@@ -13,7 +13,7 @@ import SleepingRoute from "./routes/SleepingRoute/SleepingRoute";
 function App() {
   const [route, setRoute] = useState("loading-route");
   const defaultGuestRoute = "auth-route";
-  const defaultAuthRoute = "smoking-route";
+  const defaultAuthRoute = "weight-route";
   const [authForm, setAuthForm] = useState({ login: "", password: "" });
   const [regForm, setRegForm] = useState({
     login: "",
@@ -48,6 +48,8 @@ function App() {
   const [userWeightsLastDays, setUserWeightsLastDays] = useState(null);
   const [sleepingsByDays, setSleepingsByDays] = useState(null);
   const sleepingStatsDays = 29;
+  const [weightsByDays, setWeightsByDays] = useState(null);
+  const weightStatsDays = 28;
   //-----------------------------------------------------------------
   const [userDataByDays, setUserDataByDays] = useState(null);
   const [daysOfStat, setDaysOfStat] = useState(7);
@@ -260,6 +262,15 @@ function App() {
     saveResponse({ ...response });
   };
 
+  const handleGetWeights = async (queriesObject) => {
+    const response = await getRequest(url, "weights", {
+      ...queriesObject,
+      userid,
+    });
+    setWeightsByDays(response.eventsByDays);
+    saveResponse({ ...response });
+  };
+
   const handleResetRegistration = () => {
     setRegForm({
       ...regForm,
@@ -294,14 +305,11 @@ function App() {
   const handleSetWeight = async () => {
     const response = await postRequest(url, "weight", {
       weight: weightForm.weight,
+      days: weightStatsDays,
       userid,
     });
-    setUserWeightsLastDays(response);
+    setWeightsByDays(response.eventsByDays);
     saveResponse(response);
-    handleGetUser({
-      days: 7,
-      weekdays: 4,
-    });
   };
 
   const handleSetSleeping = async (sleepingData) => {
@@ -362,6 +370,9 @@ function App() {
         await handleGetEvents({
           eventtype: "sleeping",
           days: 29,
+        });
+        await handleGetWeights({
+          days: weightStatsDays,
         });
         setRoute(defaultAuthRoute);
       } else {
@@ -446,7 +457,7 @@ function App() {
       {route === "weight-route" && (
         <WeightRoute
           form={weightForm}
-          weights={weightsLastDays}
+          weightsByDays={weightsByDays}
           onChangeWeight={(e) => {
             setWeightForm({ ...weightForm, weight: e.target.value });
           }}
