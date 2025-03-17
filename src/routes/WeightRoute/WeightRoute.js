@@ -9,6 +9,7 @@ import {
 import Table from "../../components/Table/Table";
 import {
   Chart as ChartJS,
+  Filler,
   CategoryScale,
   LinearScale,
   PointElement,
@@ -93,7 +94,8 @@ const WeightRoute = ({
     LineElement,
     Title,
     Tooltip,
-    Legend
+    Legend,
+    Filler
   );
 
   return (
@@ -132,6 +134,12 @@ const WeightRoute = ({
               tension: 0.4,
             },
           },
+          scales: {
+            y: {
+              min: 0,
+              max: 100,
+            },
+          },
         }}
         data={{
           labels: averageWeightsByNotEmptyDays.map((day) => day.date),
@@ -142,8 +150,8 @@ const WeightRoute = ({
                 (day) => day.averageWeight
               ),
               borderColor: "hsl(0, 0%, 50%)",
-              backgroundColor: "hsl(0, 0%, 95%)",
-              fill: "start",
+              backgroundColor: "hsla(0, 0%, 50%, 0.5)",
+              fill: true,
             },
           ],
         }}

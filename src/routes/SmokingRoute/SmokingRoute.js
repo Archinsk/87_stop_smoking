@@ -188,9 +188,9 @@ const SmokingRoute = ({
               dayOfProgram.dayStartTimestamp === day.dayStartTimestamp
           );
           if (day.smokings.length <= programDay.limit) {
-            return "hsl(120, 100%, 35%)";
+            return "hsl(120, 100%, 35%, 0.5)";
           } else {
-            return "hsl(0, 100%, 50%)";
+            return "hsla(0, 100%, 50%, 0.5)";
           }
         } else {
           return "hsl(0, 0%, 50%)";
@@ -258,6 +258,10 @@ const SmokingRoute = ({
       {
         data: lastDaysSmokingsFromYesterdayCounts,
         backgroundColor: lastDaysSmokingsFromYesterdayColors,
+      },
+      {
+        data: [20, 20, 18, 18, 16, 16, 14],
+        backgroundColor: "hsla(30, 100%, 50%, 0.5)",
       },
     ],
   };
@@ -357,7 +361,19 @@ const SmokingRoute = ({
         <CigarettesPack todaySmokings={todaySmokings} limitToday={limitToday} />
       )}
 
-      <Bar data={barChartData} />
+      <Bar
+        data={barChartData}
+        options={{
+          interaction: {
+            intersect: false,
+          },
+          scales: {
+            x: {
+              stacked: true,
+            },
+          },
+        }}
+      />
 
       {/* <Bubble
         options={{
