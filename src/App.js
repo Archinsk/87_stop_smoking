@@ -9,11 +9,12 @@ import SmokingRoute from "./routes/SmokingRoute/SmokingRoute";
 import Alert from "./components/Alert/Alert";
 import { getRequest, postRequest } from "./utils/RESTAPI";
 import SleepingRoute from "./routes/SleepingRoute/SleepingRoute";
+import TestRoute from "./routes/TestRoute/TestRoute";
 
 function App() {
   const [route, setRoute] = useState("loading-route");
   const defaultGuestRoute = "auth-route";
-  const defaultAuthRoute = "weight-route";
+  const defaultAuthRoute = "test-route";
   const [authForm, setAuthForm] = useState({ login: "", password: "" });
   const [regForm, setRegForm] = useState({
     login: "",
@@ -418,6 +419,7 @@ function App() {
         <Button onClick={() => setRoute("sleeping-route")}>Sleeping</Button>
         <Button onClick={() => setRoute("auth-route")}>Auth</Button>
         <Button onClick={() => setRoute("request-route")}>Request</Button>
+        <Button onClick={() => setRoute("test-route")}>Test</Button>
       </div>
       <Alert className="mb-3">
         <div>User name: {user?.name || "empty"}</div>
@@ -531,6 +533,7 @@ function App() {
           onGetUserDataLastDays={handleGetUser}
         />
       )}
+      {route === "test-route" && <TestRoute />}
     </div>
   );
 }
