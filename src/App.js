@@ -14,7 +14,7 @@ import TestRoute from "./routes/TestRoute/TestRoute";
 function App() {
   const [route, setRoute] = useState("loading-route");
   const defaultGuestRoute = "auth-route";
-  const defaultAuthRoute = "test-route";
+  const defaultAuthRoute = "smoking-route";
   const [authForm, setAuthForm] = useState({ login: "", password: "" });
   const [regForm, setRegForm] = useState({
     login: "",

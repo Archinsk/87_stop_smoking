@@ -140,6 +140,12 @@ const SmokingRoute = ({
     }
   }, [cancelledCigarettes]);
 
+  const savedLifeTime = useMemo(() => {
+    if (cancelledCigarettes) {
+      return Math.floor((cancelledCigarettes * 11) / 60);
+    }
+  }, [cancelledCigarettes]);
+
   const userDataToday = useMemo(() => {
     return userDataLastDays[userDataLastDays.length - 1];
   }, [userDataLastDays]);
@@ -207,41 +213,6 @@ const SmokingRoute = ({
     }
   }, [userDataLastDaysFromYesterday]);
 
-  const bubbleChartData = useMemo(() => {
-    if (userDataByWeekday) {
-      return userDataByWeekday
-        .map((day) => {
-          if (day.smokings.length) {
-            return day.smokings.map((smoking) => {
-              return {
-                ts: convertTimestampToTimestampFromDayStart(smoking.timestamp),
-                time: convertMsFromDayStartToHMS(
-                  convertTimestampToTimestampFromDayStart(smoking.timestamp)
-                ),
-              };
-            });
-          }
-        })
-        .filter((item) => item);
-    }
-  }, [userDataByWeekday]);
-
-  const data = {
-    datasets: bubbleChartData.map((day, index) => {
-      return {
-        label: "Date" + index,
-        data: day.map((smoking) => {
-          return {
-            x: smoking.ts * 0.001,
-            y: (index + 1) * 10,
-            r: 20,
-          };
-        }),
-        backgroundColor: "rgba(255, 99, 132, 0.5)",
-      };
-    }),
-  };
-
   Chart.register(
     CategoryScale,
     LinearScale,
@@ -286,6 +257,9 @@ const SmokingRoute = ({
         </div>
         <div>
           Сэкономленные на курении время жизни: <b>{savedTime} час.</b>
+        </div>
+        <div>
+          Жизнь продлена на: <b>{savedLifeTime} час.</b>
         </div>
         <details>
           <summary>details</summary>
@@ -375,16 +349,6 @@ const SmokingRoute = ({
         }}
       />
 
-      {/* <Bubble
-        options={{
-          scales: {
-            y: {
-              beginAtZero: true,
-            },
-          },
-        }}
-        data={data}
-      /> */}
       <div>
         <Button
           onClick={() => {
@@ -464,35 +428,6 @@ const SmokingRoute = ({
           </div>
         </>
       )}
-
-      <hr />
-      <h3>weekdaySmokings</h3>
-      {userDataByWeekday &&
-        userDataByWeekday.map((day, index) => {
-          return (
-            <div className="one-day" key={index}>
-              <details>
-                <summary>
-                  <b>{convertTimestampToDMY(day.dayStartTimestamp)}</b>
-                </summary>
-                <Table
-                  data={[
-                    [
-                      { tag: "th", content: "Время" },
-                      { tag: "th", content: "Тип" },
-                    ],
-                    ...day.smokings.map((smoking) => {
-                      return [
-                        convertTimestampToHMS(smoking.timestamp),
-                        smoking.type,
-                      ];
-                    }),
-                  ]}
-                />
-              </details>
-            </div>
-          );
-        })}
 
       <hr />
       <h3>dayByDaySmokings</h3>
