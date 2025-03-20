@@ -19,11 +19,13 @@ import {
   Legend,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
+import Alert from "../../components/Alert/Alert";
 
 const WeightRoute = ({
   form,
   weightsByDays,
-  onChangeWeight,
+  onChangeWeightKilograms,
+  onChangeWeightGrams,
   onResetWeight,
   onSetWeight,
   className,
@@ -51,6 +53,28 @@ const WeightRoute = ({
         });
     }
   }, [weightsByDays]);
+
+  const averageWeightsForLastSevenChecks = useMemo(() => {
+    let checks = 0;
+    let totalWeight = 0;
+    if (averageWeightsByNotEmptyDays) {
+      if (averageWeightsByNotEmptyDays.length > 7) {
+        checks = 7;
+        averageWeightsByNotEmptyDays.forEach((day, index) => {
+          if (averageWeightsByNotEmptyDays.length - index <= 7) {
+            totalWeight += day.averageWeight;
+          }
+        });
+        return (Math.round((totalWeight / checks) * 20) / 20).toFixed(2);
+      } else {
+        checks = averageWeightsByNotEmptyDays.length;
+        averageWeightsByNotEmptyDays.forEach((day) => {
+          totalWeight += day.averageWeight;
+        });
+        return totalWeight / checks;
+      }
+    }
+  }, [averageWeightsByNotEmptyDays]);
 
   const options = {
     responsive: true,
@@ -100,14 +124,42 @@ const WeightRoute = ({
 
   return (
     <div className={`weight-route${className ? " " + className : ""}`}>
+      <Alert className="mb-3">
+        <div>
+          Средний вес за последние X взвешиваний:{" "}
+          {averageWeightsForLastSevenChecks}
+        </div>
+      </Alert>
       <h2>Вес</h2>
-      <form className="mb-3">
-        <Input
-          label="Вес"
-          id="userWeight"
-          onChange={onChangeWeight}
-          value={form.weight}
-        />
+      <form className="d-block mb-3">
+        <div className="">
+          <Input
+            id="userWeightKilograms"
+            className="d-inline-block"
+            type="number"
+            min="0"
+            onChange={onChangeWeightKilograms}
+            value={
+              !form.weightKilograms && averageWeightsForLastSevenChecks
+                ? String(averageWeightsForLastSevenChecks).slice(0, -3)
+                : form.weightKilograms
+            }
+          />
+          <span> . </span>
+          <Input
+            id="userWeightGrams"
+            className="d-inline-block"
+            type="number"
+            min="0"
+            step="5"
+            onChange={onChangeWeightGrams}
+            value={
+              !form.weightGrams && averageWeightsForLastSevenChecks
+                ? String(averageWeightsForLastSevenChecks).slice(-2)
+                : form.weightGrams
+            }
+          />
+        </div>
       </form>
       <div>
         <Button type="button" onClick={onResetWeight}>

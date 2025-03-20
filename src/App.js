@@ -14,7 +14,7 @@ import TestRoute from "./routes/TestRoute/TestRoute";
 function App() {
   const [route, setRoute] = useState("loading-route");
   const defaultGuestRoute = "auth-route";
-  const defaultAuthRoute = "smoking-route";
+  const defaultAuthRoute = "weight-route";
   const [authForm, setAuthForm] = useState({ login: "", password: "" });
   const [regForm, setRegForm] = useState({
     login: "",
@@ -29,7 +29,10 @@ function App() {
     smokedFromStopSmokingStart: null,
     isBlocked: false,
   });
-  const [weightForm, setWeightForm] = useState({ weight: "" });
+  const [weightForm, setWeightForm] = useState({
+    weightKilograms: "",
+    weightGrams: "",
+  });
   const [responses, setResponses] = useState([]);
   const responsesHistoryLength = 10;
   const url =
@@ -460,8 +463,19 @@ function App() {
         <WeightRoute
           form={weightForm}
           weightsByDays={weightsByDays}
-          onChangeWeight={(e) => {
-            setWeightForm({ ...weightForm, weight: e.target.value });
+          onChangeWeightKilograms={(e) => {
+            setWeightForm({
+              ...weightForm,
+              weightKilograms:
+                +e.target.value < 10 ? "0" + e.target.value : e.target.value,
+            });
+          }}
+          onChangeWeightGrams={(e) => {
+            setWeightForm({
+              ...weightForm,
+              weightGrams:
+                +e.target.value < 10 ? "0" + e.target.value : e.target.value,
+            });
           }}
           onResetWeight={() => {
             setWeightForm({ ...weightForm, weight: "" });
