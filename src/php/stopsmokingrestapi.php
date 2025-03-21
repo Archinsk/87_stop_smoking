@@ -196,8 +196,16 @@ if ($_SERVER[REQUEST_METHOD] == 'GET') {
             $event = new stdClass();
             $event->id = $item->id;
             $event->type = $item->type;
-            $event->startTimestamp = $item->start_timestamp * 1000;
-            $event->finishTimestamp = $item->finish_timestamp * 1000;
+            //if ($event->startTimestamp) {
+              $event->startTimestamp = $item->start_timestamp * 1000;
+            //} else {
+            //  $event->startTimestamp = null;
+            //};
+            //if ($event->finishTimestamp) {
+              $event->finishTimestamp = $item->finish_timestamp * 1000;
+            //} else {
+            //  $event->finishTimestamp = null;
+            //};
             array_push($oneDayEvents, $event);
           };
           $oneDay = new stdClass();

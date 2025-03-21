@@ -18,6 +18,7 @@ import MuiRadioGroup from "../../components/MuiRadioGroup/MuiRadioGroupt";
 import Table from "../../components/Table/Table";
 import {
   convertTimestampToDMY,
+  convertTimestampToDMYHMS,
   convertTimestampToHMS,
 } from "../../utils/dateTimeConverters";
 import { Bar } from "react-chartjs-2";
@@ -31,14 +32,17 @@ import {
   Title,
   Tooltip,
 } from "chart.js";
+import Alert from "../../components/Alert/Alert";
 
 const SleepingRoute = ({ sleepingsByDays, onSetSleeping, className }) => {
-  const { register, control, reset, handleSubmit } = useForm({
+  const { register, control, reset, handleSubmit, watch } = useForm({
     defaultValues: {
       startDatetimeLocal: "",
       finishDatetimeLocal: "",
     },
   });
+
+  const form = watch();
 
   const onSubmit = (formData) => {
     onSetSleeping(formData);
@@ -89,6 +93,18 @@ const SleepingRoute = ({ sleepingsByDays, onSetSleeping, className }) => {
     return !!lastSleeping.finishTimestamp;
   }, [lastSleeping]);
 
+  const isDisabledSubmitButton = useMemo(() => {
+    return (
+      (!form.startDatetimeLocal && !form.finishDatetimeLocal) ||
+      (isLastSleepingStartTimestamp &&
+        isLastSleepingFinishTimestamp &&
+        !form.startDatetimeLocal) ||
+      (isLastSleepingStartTimestamp &&
+        !isLastSleepingFinishTimestamp &&
+        !form.finishDatetimeLocal)
+    );
+  }, [isLastSleepingStartTimestamp, isLastSleepingFinishTimestamp, form]);
+
   Chart.register(
     CategoryScale,
     LinearScale,
@@ -110,6 +126,12 @@ const SleepingRoute = ({ sleepingsByDays, onSetSleeping, className }) => {
   return (
     <div className={`sleeping-route${className ? " " + className : ""}`}>
       <h2>Сон</h2>
+      <Alert className="mb-3">
+        <div>
+          Last sleeping:{" "}
+          {`start: ${convertTimestampToDMYHMS(lastSleeping.startTimestamp)}, finish: ${convertTimestampToDMYHMS(lastSleeping.finishTimestamp)}`}
+        </div>
+      </Alert>
       <form className="mb-3" onSubmit={handleSubmit(onSubmit)}>
         <div>
           <Button>Лечь спать</Button>
@@ -165,7 +187,9 @@ const SleepingRoute = ({ sleepingsByDays, onSetSleeping, className }) => {
           >
             Сбросить
           </Button>
-          <Button type="submit">Сохранить</Button>
+          <Button type="submit" disabled={isDisabledSubmitButton}>
+            Сохранить
+          </Button>
         </div>
       </form>
 
