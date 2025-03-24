@@ -129,12 +129,20 @@ const SleepingRoute = ({ sleepingsByDays, onSetSleeping, className }) => {
       <Alert className="mb-3">
         <div>
           Last sleeping:{" "}
-          {`start: ${convertTimestampToDMYHMS(lastSleeping.startTimestamp)}, finish: ${convertTimestampToDMYHMS(lastSleeping.finishTimestamp)}`}
+          {`start: ${convertTimestampToDMYHMS(lastSleeping.startTimestamp)}`}
+          {lastSleeping.finishTimestamp &&
+            `, finish: ${convertTimestampToDMYHMS(lastSleeping.finishTimestamp)}`}
         </div>
       </Alert>
       <form className="mb-3" onSubmit={handleSubmit(onSubmit)}>
         <div>
-          <Button>Лечь спать</Button>
+          <Button
+            disabled={
+              isLastSleepingStartTimestamp && !isLastSleepingFinishTimestamp
+            }
+          >
+            Лечь спать
+          </Button>
           <Button>Проснуться</Button>
           <Button>Ввести вручную</Button>
         </div>
@@ -143,6 +151,9 @@ const SleepingRoute = ({ sleepingsByDays, onSetSleeping, className }) => {
             label="Начало"
             id="sleepingStartDatetime"
             type="datetime-local"
+            disabled={
+              isLastSleepingStartTimestamp && !isLastSleepingFinishTimestamp
+            }
             {...register("startDatetimeLocal")}
           />
           <Input
@@ -180,13 +191,15 @@ const SleepingRoute = ({ sleepingsByDays, onSetSleeping, className }) => {
         />
       )} */}
         <div>
-          <Button
-            onClick={() => {
-              reset();
-            }}
-          >
-            Сбросить
-          </Button>
+          {false && (
+            <Button
+              onClick={() => {
+                reset();
+              }}
+            >
+              Сбросить
+            </Button>
+          )}
           <Button type="submit" disabled={isDisabledSubmitButton}>
             Сохранить
           </Button>

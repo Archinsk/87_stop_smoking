@@ -15,4 +15,8 @@
   border-style: var(--input-border-style, var(--border-style, solid));
   border-width: var(--input-border-width, var(--border-width, 0.0625rem));
   border-radius: var(--border-radius);
+
+  &:disabled {
+    background-color: hsl(0, 0%, 90%);
+  }
 }

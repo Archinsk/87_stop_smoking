@@ -188,9 +188,12 @@ if ($_SERVER[REQUEST_METHOD] == 'GET') {
 
       //get-events-sleeping - данные пользователя периодах сна
       if ($queries['eventtype'] == 'sleeping') {
+        //Поиск последнего события с типом "sleeping"
+        $lastSleeping = R::findOne('events', 'userid = ? AND type = ? ORDER BY start_timestamp DESC', array($userDB->id, $queries['eventtype']));
+        $response->lastSleeping = $lastSleeping;
         $userDataByDays = array();
         for ($i = $days - 1; $i >= 0; $i--) {
-          $oneDayDB = R::find('events', 'userid = ? AND type = ? AND finish_timestamp >= ? AND start_timestamp < ? ORDER BY start_timestamp ASC', array($userDB->id, $queries['eventtype'], $startOfToday - $i * 86400, $startOfToday - ($i - 1) * 86400));
+          $oneDayDB = R::find('events', 'userid = ? AND type = ? AND ( start_timestamp >= ? AND start_timestamp < ? OR finish_timestamp >= ? AND finish_timestamp < ? ) ORDER BY start_timestamp ASC', array($userDB->id, $queries['eventtype'], $startOfToday - $i * 86400, $startOfToday - ($i - 1) * 86400, $startOfToday - $i * 86400, $startOfToday - ($i - 1) * 86400));
           $oneDayEvents = array();
           foreach( $oneDayDB as $item) {
             $event = new stdClass();
@@ -325,6 +328,10 @@ if ($_SERVER[REQUEST_METHOD] == 'POST') {
     if ($_SERVER[PATH_INFO] == '/event') {
       //set-event-sleeping - установка данных о сне
       if ($request['eventType'] == 'sleeping') {
+        //Поиск последнего события с типом "sleeping"
+        $lastSleeping = R::findOne('events', 'userid = ? AND type = ? ORDER BY start_timestamp DESC', array($userDB->id, $queries['eventtype']));
+        $lastSleeping
+        $response->lastSleeping = $lastSleeping;
         $sleeping = R::dispense('events');
         $sleeping->userid = $userDB->id;
         $sleeping->type = $request['eventType'];

@@ -259,6 +259,7 @@ function App() {
     });
     if (response.eventType === "sleeping") {
       setSleepingsByDays(response.eventsByDays);
+      console.log(response);
     }
     //setUserDataLastDays(response.lastDays);
     //const afterResponse = Date.now();
