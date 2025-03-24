@@ -326,6 +326,7 @@ function App() {
     });
     setSleepingsByDays(response.eventsByDays);
     saveResponse(response);
+    console.log(response);
   };
 
   const handleSetSmoking = async (smokingType) => {

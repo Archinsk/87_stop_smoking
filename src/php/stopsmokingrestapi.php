@@ -191,6 +191,9 @@ if ($_SERVER[REQUEST_METHOD] == 'GET') {
         //Поиск последнего события с типом "sleeping"
         $lastSleeping = R::findOne('events', 'userid = ? AND type = ? ORDER BY start_timestamp DESC', array($userDB->id, $queries['eventtype']));
         $response->lastSleeping = $lastSleeping;
+        $response->lastSleepingNoFinish = !$lastSleeping->finish_timestamp;
+        $sleeping = R::load('events', $lastSleeping->id);
+        $response->lastSleepingId = $sleeping->id;
         $userDataByDays = array();
         for ($i = $days - 1; $i >= 0; $i--) {
           $oneDayDB = R::find('events', 'userid = ? AND type = ? AND ( start_timestamp >= ? AND start_timestamp < ? OR finish_timestamp >= ? AND finish_timestamp < ? ) ORDER BY start_timestamp ASC', array($userDB->id, $queries['eventtype'], $startOfToday - $i * 86400, $startOfToday - ($i - 1) * 86400, $startOfToday - $i * 86400, $startOfToday - ($i - 1) * 86400));
@@ -199,16 +202,8 @@ if ($_SERVER[REQUEST_METHOD] == 'GET') {
             $event = new stdClass();
             $event->id = $item->id;
             $event->type = $item->type;
-            //if ($event->startTimestamp) {
-              $event->startTimestamp = $item->start_timestamp * 1000;
-            //} else {
-            //  $event->startTimestamp = null;
-            //};
-            //if ($event->finishTimestamp) {
-              $event->finishTimestamp = $item->finish_timestamp * 1000;
-            //} else {
-            //  $event->finishTimestamp = null;
-            //};
+            $event->startTimestamp = $item->start_timestamp * 1000;
+            $event->finishTimestamp = $item->finish_timestamp * 1000;
             array_push($oneDayEvents, $event);
           };
           $oneDay = new stdClass();
@@ -329,27 +324,41 @@ if ($_SERVER[REQUEST_METHOD] == 'POST') {
       //set-event-sleeping - установка данных о сне
       if ($request['eventType'] == 'sleeping') {
         //Поиск последнего события с типом "sleeping"
-        $lastSleeping = R::findOne('events', 'userid = ? AND type = ? ORDER BY start_timestamp DESC', array($userDB->id, $queries['eventtype']));
-        $lastSleeping
-        $response->lastSleeping = $lastSleeping;
-        $sleeping = R::dispense('events');
-        $sleeping->userid = $userDB->id;
-        $sleeping->type = $request['eventType'];
-        if ($request['startDatetimeLocal']) {
-          $date = new DateTime($request['startDatetimeLocal']);
-          $timestamp = $date->getTimestamp();
-          $offset = ($userDB->time_zone_offset + $serverTimezoneOffsetMin) * 60;
-          $timestampWithOffset = $timestamp + $offset;
-          $sleeping->startTimestamp = $timestampWithOffset;
+        $lastSleeping = R::findOne('events', 'userid = ? AND type = ? ORDER BY start_timestamp DESC', array($userDB->id, $request['eventType']));
+        if (!$lastSleeping->finish_timestamp) {
+          $sleeping = R::load('events', $lastSleeping->id);
+          $response->lastSleeping = $lastSleeping;
+          $response->lastSleepingId = $lastSleeping->id;
+          $response->lastSleepingIdNum = +$lastSleeping->id;
+          $response->sleeping = $sleeping;
+          if ($request['finishDatetimeLocal']) {
+            $date = new DateTime($request['finishDatetimeLocal']);
+            $timestamp = $date->getTimestamp();
+            $offset = ($userDB->time_zone_offset + $serverTimezoneOffsetMin) * 60;
+            $timestampWithOffset = $timestamp + $offset;
+            $sleeping->finishTimestamp = $timestampWithOffset;
+          };
+          R::store($sleeping);
+        } else {
+          $sleeping = R::dispense('events');
+          $sleeping->userid = $userDB->id;
+          $sleeping->type = $request['eventType'];
+          if ($request['startDatetimeLocal']) {
+            $date = new DateTime($request['startDatetimeLocal']);
+            $timestamp = $date->getTimestamp();
+            $offset = ($userDB->time_zone_offset + $serverTimezoneOffsetMin) * 60;
+            $timestampWithOffset = $timestamp + $offset;
+            $sleeping->startTimestamp = $timestampWithOffset;
+          };
+          if ($request['finishDatetimeLocal']) {
+            $date = new DateTime($request['finishDatetimeLocal']);
+            $timestamp = $date->getTimestamp();
+            $offset = ($userDB->time_zone_offset + $serverTimezoneOffsetMin) * 60;
+            $timestampWithOffset = $timestamp + $offset;
+            $sleeping->finishTimestamp = $timestampWithOffset;
+          };
+          R::store($sleeping);
         };
-        if ($request['finishDatetimeLocal']) {
-          $date = new DateTime($request['finishDatetimeLocal']);
-          $timestamp = $date->getTimestamp();
-          $offset = ($userDB->time_zone_offset + $serverTimezoneOffsetMin) * 60;
-          $timestampWithOffset = $timestamp + $offset;
-          $sleeping->finishTimestamp = $timestampWithOffset;
-        };
-        R::store($sleeping);
         //Формирование ответа
         $days = $request['days'];
         $userDataByDays = array();
