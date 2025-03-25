@@ -16,7 +16,7 @@ const RequestRoute = ({
 }) => {
   return (
     <div className={`request-route${className ? " " + className : ""}`}>
-      <div className="mb-3">
+      <div className="d-flex gap-2 mb-3">
         <Button onClick={onGetServer}>GetServer</Button>
         <Button onClick={onGetRequest}>GET</Button>
         <Button onClick={onPostRequest}>POST</Button>

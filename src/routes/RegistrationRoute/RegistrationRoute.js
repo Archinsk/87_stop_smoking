@@ -35,7 +35,7 @@ const RegistrationRoute = ({
           value={form.passwordConfirmation}
         />
       </form>
-      <div>
+      <div className="d-flex gap-2">
         <Button type="button" onClick={onResetRegistration}>
           Отмена
         </Button>

@@ -203,7 +203,9 @@ if ($_SERVER[REQUEST_METHOD] == 'GET') {
             $event->id = $item->id;
             $event->type = $item->type;
             $event->startTimestamp = $item->start_timestamp * 1000;
-            $event->finishTimestamp = $item->finish_timestamp * 1000;
+            if ($item->finish_timestamp) {
+              $event->finishTimestamp = $item->finish_timestamp * 1000;
+            };
             array_push($oneDayEvents, $event);
           };
           $oneDay = new stdClass();

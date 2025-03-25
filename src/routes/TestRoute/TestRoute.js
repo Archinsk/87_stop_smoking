@@ -47,7 +47,7 @@ const TestRoute = ({ className }) => {
         </div>
         <Input label="Custom uncontrolled input" id="userWeight" />
       </form>
-      <div>
+      <div className="d-flex gap-2">
         <Button type="button" onClick={() => {}}>
           Отмена
         </Button>

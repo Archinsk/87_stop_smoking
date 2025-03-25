@@ -418,7 +418,7 @@ function App() {
     <div className="app">
       {/* <span className="material-icons">smoke_free</span> Stop Smoking
       <Button icon="settings" onClick={() => setShowSettings(!showSettings)} /> */}
-      <div className="navbar mb-3">
+      <div className="navbar d-flex gap-2 mb-3">
         <Button onClick={() => setRoute("smoking-route")}>Smoking</Button>
         <Button onClick={() => setRoute("weight-route")}>Weight</Button>
         <Button onClick={() => setRoute("sleeping-route")}>Sleeping</Button>

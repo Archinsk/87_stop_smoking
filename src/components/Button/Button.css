@@ -47,6 +47,7 @@
   &:disabled {
     background-color: var(--button-disabled-background-color, hsl(0, 0%, 85%));
     color: var(--button-disabled-color, hsl(0, 0%, 50%));
+    pointer-events: none;
   }
 }
 

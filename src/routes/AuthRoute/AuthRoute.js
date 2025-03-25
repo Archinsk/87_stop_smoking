@@ -29,7 +29,7 @@ const AuthRoute = ({
           value={form.password}
         />
       </form>
-      <div>
+      <div className="d-flex gap-2">
         <Button type="button" onClick={onResetAuth}>
           Отмена
         </Button>

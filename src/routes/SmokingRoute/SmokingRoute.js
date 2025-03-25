@@ -312,7 +312,7 @@ const SmokingRoute = ({
         <div>latitude : {geoPosition.lat}</div>
         <div>longitude : {geoPosition.long}</div>
       </div> */}
-      <div className="mb-3">
+      <div className="d-flex gap-2 mb-3">
         <Button
           type="button"
           onClick={() => {
@@ -349,7 +349,7 @@ const SmokingRoute = ({
         }}
       />
 
-      <div>
+      <div className="d-flex gap-2">
         <Button
           onClick={() => {
             onGetUserDataLastDays({

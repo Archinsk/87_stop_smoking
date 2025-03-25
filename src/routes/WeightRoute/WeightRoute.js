@@ -161,7 +161,7 @@ const WeightRoute = ({
           />
         </div>
       </form>
-      <div>
+      <div className="d-flex gap-2">
         <Button type="button" onClick={onResetWeight}>
           Отмена
         </Button>

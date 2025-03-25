@@ -19,6 +19,7 @@ import Table from "../../components/Table/Table";
 import {
   convertTimestampToDMY,
   convertTimestampToDMYHMS,
+  convertTimestampToDatetimeLocal,
   convertTimestampToHMS,
 } from "../../utils/dateTimeConverters";
 import { Bar } from "react-chartjs-2";
@@ -35,55 +36,23 @@ import {
 import Alert from "../../components/Alert/Alert";
 
 const SleepingRoute = ({ sleepingsByDays, onSetSleeping, className }) => {
-  const { register, control, reset, handleSubmit, watch } = useForm({
-    defaultValues: {
-      startDatetimeLocal: "",
-      finishDatetimeLocal: "",
-    },
-  });
+  const [showForm, setShowForm] = useState(true);
 
-  const form = watch();
-
-  const onSubmit = (formData) => {
-    onSetSleeping(formData);
-    reset();
-  };
-
-  const sleepingsByDaysFromYesterday = useMemo(() => {
-    return sleepingsByDays.slice(0, -1).filter((day) => {
-      return day.events.length;
-    });
-  }, [sleepingsByDays]);
-
-  const sleepingsLengthByDaysFromYesterday = useMemo(() => {
-    return sleepingsByDaysFromYesterday.map((day) => {
-      let hours = 0;
-      if (day.events.length) {
-        day.events.forEach((event) => {
-          hours += +(
-            (event.finishTimestamp - event.startTimestamp) /
-            1000 /
-            60 /
-            60
-          ).toFixed(2);
-        });
-      }
-      return {
-        date: convertTimestampToDMY(day.dayStartTimestamp),
-        sleepingHours: hours,
-      };
-    });
-  }, [sleepingsByDaysFromYesterday]);
-
-  const lastSleeping = useMemo(() => {
+  const sleepingsByDaysNotEmptyDays = useMemo(() => {
     if (sleepingsByDays.length) {
-      const notEmptyDays = sleepingsByDays.filter((day) => {
+      return sleepingsByDays.filter((day) => {
         return day.events.length;
       });
-      const lastSleepingDay = notEmptyDays[notEmptyDays.length - 1];
-      return lastSleepingDay.events[lastSleepingDay.events.length - 1];
     }
   }, [sleepingsByDays]);
+
+  const lastSleepingDay = useMemo(() => {
+    return sleepingsByDaysNotEmptyDays[sleepingsByDaysNotEmptyDays.length - 1];
+  }, [sleepingsByDaysNotEmptyDays]);
+
+  const lastSleeping = useMemo(() => {
+    return lastSleepingDay.events[lastSleepingDay.events.length - 1];
+  }, [lastSleepingDay]);
 
   const isLastSleepingStartTimestamp = useMemo(() => {
     return !!lastSleeping.startTimestamp;
@@ -92,6 +61,66 @@ const SleepingRoute = ({ sleepingsByDays, onSetSleeping, className }) => {
   const isLastSleepingFinishTimestamp = useMemo(() => {
     return !!lastSleeping.finishTimestamp;
   }, [lastSleeping]);
+
+  const isLastDayFinishedSleeping = useMemo(() => {
+    return lastSleepingDay.events.some((event) => {
+      return event.finishTimestamp;
+    });
+  }, [lastSleepingDay]);
+
+  const sleepingsByDaysFourWeeks = useMemo(() => {
+    if (isLastDayFinishedSleeping) {
+      return sleepingsByDays.slice(1);
+    } else {
+      return sleepingsByDays.slice(0, -1);
+    }
+  }, [sleepingsByDaysNotEmptyDays, isLastDayFinishedSleeping]);
+
+  const sleepingsLengthByDaysFromYesterday = useMemo(() => {
+    return sleepingsByDaysFourWeeks.map((day) => {
+      let hours = 0;
+      if (day.events.length) {
+        day.events.forEach((event) => {
+          if (event.finishTimestamp) {
+            hours += +(
+              (event.finishTimestamp - event.startTimestamp) /
+              1000 /
+              60 /
+              60
+            ).toFixed(2);
+          }
+        });
+      }
+      return {
+        date: convertTimestampToDMY(day.dayStartTimestamp),
+        sleepingHours: hours,
+      };
+    });
+  }, [sleepingsByDaysFourWeeks]);
+
+  const { register, control, reset, handleSubmit, watch } = useForm({
+    defaultValues: {
+      startDatetimeLocal:
+        isLastSleepingStartTimestamp && !isLastSleepingFinishTimestamp
+          ? convertTimestampToDatetimeLocal(lastSleeping.startTimestamp)
+          : "",
+      finishDatetimeLocal: "",
+    },
+  });
+
+  const form = watch();
+
+  const onSubmit = (formData) => {
+    const requestBody = {};
+    if (formData.startDatetimeLocal) {
+      requestBody.startDatetimeLocal = formData.startDatetimeLocal;
+    }
+    if (formData.finishDatetimeLocal) {
+      requestBody.finishDatetimeLocal = formData.finishDatetimeLocal;
+    }
+    onSetSleeping(requestBody);
+    reset();
+  };
 
   const isDisabledSubmitButton = useMemo(() => {
     return (
@@ -135,35 +164,63 @@ const SleepingRoute = ({ sleepingsByDays, onSetSleeping, className }) => {
         </div>
       </Alert>
       <form className="mb-3" onSubmit={handleSubmit(onSubmit)}>
-        <div>
+        <div className="d-flex gap-2">
           <Button
             disabled={
               isLastSleepingStartTimestamp && !isLastSleepingFinishTimestamp
             }
+            onClick={() => {
+              console.log("Лечь спать");
+              onSetSleeping({
+                startDatetimeLocal: convertTimestampToDatetimeLocal(Date.now()),
+              });
+              reset();
+              console.log(convertTimestampToDatetimeLocal(Date.now()));
+            }}
           >
             Лечь спать
           </Button>
-          <Button>Проснуться</Button>
-          <Button>Ввести вручную</Button>
-        </div>
-        <div className="d-flex">
-          <Input
-            label="Начало"
-            id="sleepingStartDatetime"
-            type="datetime-local"
-            disabled={
-              isLastSleepingStartTimestamp && !isLastSleepingFinishTimestamp
-            }
-            {...register("startDatetimeLocal")}
+          <Button
+            onClick={() => {
+              console.log("Проснуться");
+              onSetSleeping({
+                finishDatetimeLocal: convertTimestampToDatetimeLocal(
+                  Date.now()
+                ),
+              });
+              reset();
+            }}
+          >
+            Проснуться
+          </Button>
+          <Button
+            className="button-square"
+            icon="more_horiz"
+            onClick={() => {
+              setShowForm(!showForm);
+            }}
           />
-          <Input
-            label="Окончание"
-            id="sleepingFinishDatetime"
-            type="datetime-local"
-            {...register("finishDatetimeLocal")}
-          />
         </div>
-        {/* <MuiRadioGroup
+        {showForm && (
+          <>
+            <div className="d-flex">
+              <Input
+                label="Начало"
+                id="sleepingStartDatetime"
+                type="datetime-local"
+                disabled={
+                  isLastSleepingStartTimestamp && !isLastSleepingFinishTimestamp
+                }
+                {...register("startDatetimeLocal")}
+              />
+              <Input
+                label="Окончание"
+                id="sleepingFinishDatetime"
+                type="datetime-local"
+                {...register("finishDatetimeLocal")}
+              />
+            </div>
+            {/* <MuiRadioGroup
         label="Тип кузова"
         id="transportType"
         control={control}
@@ -190,20 +247,22 @@ const SleepingRoute = ({ sleepingsByDays, onSetSleeping, className }) => {
           name="carBrand"
         />
       )} */}
-        <div>
-          {false && (
-            <Button
-              onClick={() => {
-                reset();
-              }}
-            >
-              Сбросить
-            </Button>
-          )}
-          <Button type="submit" disabled={isDisabledSubmitButton}>
-            Сохранить
-          </Button>
-        </div>
+            <div>
+              {false && (
+                <Button
+                  onClick={() => {
+                    reset();
+                  }}
+                >
+                  Сбросить
+                </Button>
+              )}
+              <Button type="submit" disabled={isDisabledSubmitButton}>
+                Сохранить
+              </Button>
+            </div>
+          </>
+        )}
       </form>
 
       {sleepingsLengthByDaysFromYesterday?.length && (
@@ -245,7 +304,9 @@ const SleepingRoute = ({ sleepingsByDays, onSetSleeping, className }) => {
                       ...day.events.map((event) => {
                         return [
                           convertTimestampToHMS(event.startTimestamp),
-                          convertTimestampToHMS(event.finishTimestamp),
+                          event.finishTimestamp
+                            ? convertTimestampToHMS(event.finishTimestamp)
+                            : "",
                         ];
                       }),
                     ]}
