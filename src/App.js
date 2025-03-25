@@ -374,7 +374,7 @@ function App() {
           weekdays: 4,
         });
         await handleGetEvents({
-          eventtype: "sleeping",
+          eventType: "sleeping",
           days: 29,
         });
         await handleGetWeights({

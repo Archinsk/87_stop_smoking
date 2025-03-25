@@ -187,16 +187,16 @@ if ($_SERVER[REQUEST_METHOD] == 'GET') {
       $days = $queries['days'];
 
       //get-events-sleeping - данные пользователя периодах сна
-      if ($queries['eventtype'] == 'sleeping') {
+      if ($queries['eventType'] == 'sleeping') {
         //Поиск последнего события с типом "sleeping"
-        $lastSleeping = R::findOne('events', 'userid = ? AND type = ? ORDER BY start_timestamp DESC', array($userDB->id, $queries['eventtype']));
+        $lastSleeping = R::findOne('events', 'userid = ? AND type = ? ORDER BY start_timestamp DESC', array($userDB->id, $queries['eventType']));
         $response->lastSleeping = $lastSleeping;
         $response->lastSleepingNoFinish = !$lastSleeping->finish_timestamp;
         $sleeping = R::load('events', $lastSleeping->id);
         $response->lastSleepingId = $sleeping->id;
         $userDataByDays = array();
         for ($i = $days - 1; $i >= 0; $i--) {
-          $oneDayDB = R::find('events', 'userid = ? AND type = ? AND ( start_timestamp >= ? AND start_timestamp < ? OR finish_timestamp >= ? AND finish_timestamp < ? ) ORDER BY start_timestamp ASC', array($userDB->id, $queries['eventtype'], $startOfToday - $i * 86400, $startOfToday - ($i - 1) * 86400, $startOfToday - $i * 86400, $startOfToday - ($i - 1) * 86400));
+          $oneDayDB = R::find('events', 'userid = ? AND type = ? AND ( start_timestamp >= ? AND start_timestamp < ? OR finish_timestamp >= ? AND finish_timestamp < ? ) ORDER BY start_timestamp ASC', array($userDB->id, $queries['eventType'], $startOfToday - $i * 86400, $startOfToday - ($i - 1) * 86400, $startOfToday - $i * 86400, $startOfToday - ($i - 1) * 86400));
           $oneDayEvents = array();
           foreach( $oneDayDB as $item) {
             $event = new stdClass();
@@ -214,7 +214,7 @@ if ($_SERVER[REQUEST_METHOD] == 'GET') {
           array_push($userDataByDays, $oneDay);
         };
         $response->eventsByDays = $userDataByDays;
-        $response->eventType = $queries['eventtype'];
+        $response->eventType = $queries['eventType'];
       };
 	  } else {
 	    $response->auth = false;
@@ -365,14 +365,16 @@ if ($_SERVER[REQUEST_METHOD] == 'POST') {
         $days = $request['days'];
         $userDataByDays = array();
         for ($i = $days - 1; $i >= 0; $i--) {
-          $oneDayDB = R::find('events', 'userid = ? AND type = ? AND finish_timestamp >= ? AND start_timestamp < ? ORDER BY start_timestamp ASC', array($userDB->id, $request['eventType'], $startOfToday - $i * 86400, $startOfToday - ($i - 1) * 86400));
+          $oneDayDB = R::find('events', 'userid = ? AND type = ? AND ( start_timestamp >= ? AND start_timestamp < ? OR finish_timestamp >= ? AND finish_timestamp < ? ) ORDER BY start_timestamp ASC', array($userDB->id, $request['eventType'], $startOfToday - $i * 86400, $startOfToday - ($i - 1) * 86400, $startOfToday - $i * 86400, $startOfToday - ($i - 1) * 86400));
           $oneDayEvents = array();
           foreach( $oneDayDB as $item) {
             $event = new stdClass();
             $event->id = $item->id;
             $event->type = $item->type;
             $event->startTimestamp = $item->start_timestamp * 1000;
-            $event->finishTimestamp = $item->finish_timestamp * 1000;
+            if ($item->finish_timestamp) {
+              $event->finishTimestamp = $item->finish_timestamp * 1000;
+            };
             array_push($oneDayEvents, $event);
           };
           $oneDay = new stdClass();

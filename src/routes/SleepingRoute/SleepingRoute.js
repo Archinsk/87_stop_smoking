@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import "./SleepingRoute.css";
 import Input from "../../components/Input/Input";
 import Button from "../../components/Button/Button";
@@ -34,9 +34,10 @@ import {
   Tooltip,
 } from "chart.js";
 import Alert from "../../components/Alert/Alert";
+import { getAverageFromNumbersArray } from "../../utils/math";
 
 const SleepingRoute = ({ sleepingsByDays, onSetSleeping, className }) => {
-  const [showForm, setShowForm] = useState(true);
+  const [showForm, setShowForm] = useState(false);
 
   const sleepingsByDaysNotEmptyDays = useMemo(() => {
     if (sleepingsByDays.length) {
@@ -76,43 +77,121 @@ const SleepingRoute = ({ sleepingsByDays, onSetSleeping, className }) => {
     }
   }, [sleepingsByDaysNotEmptyDays, isLastDayFinishedSleeping]);
 
-  const sleepingsLengthByDaysFromYesterday = useMemo(() => {
+  const sleepingsLengthByDaysFourWeeks = useMemo(() => {
     return sleepingsByDaysFourWeeks.map((day) => {
       let hours = 0;
       if (day.events.length) {
         day.events.forEach((event) => {
           if (event.finishTimestamp) {
+            let trimmedEventForDay = { ...event };
+            if (trimmedEventForDay.startTimestamp <= day.dayStartTimestamp) {
+              trimmedEventForDay.startTimestamp = day.dayStartTimestamp;
+            }
+            if (
+              trimmedEventForDay.finishTimestamp >
+              day.dayStartTimestamp + 86400000
+            ) {
+              trimmedEventForDay.finishTimestamp =
+                day.dayStartTimestamp + 86400000;
+            }
             hours += +(
-              (event.finishTimestamp - event.startTimestamp) /
-              1000 /
-              60 /
-              60
+              (trimmedEventForDay.finishTimestamp -
+                trimmedEventForDay.startTimestamp) /
+              3600000
             ).toFixed(2);
           }
         });
       }
       return {
+        dayStartTimestamp: day.dayStartTimestamp,
         date: convertTimestampToDMY(day.dayStartTimestamp),
         sleepingHours: hours,
       };
     });
   }, [sleepingsByDaysFourWeeks]);
 
-  const { register, control, reset, handleSubmit, watch } = useForm({
+  const averageSleepingsLengthByFourWeeks = useMemo(() => {
+    return getAverageFromNumbersArray(
+      sleepingsLengthByDaysFourWeeks.map((day) => +day.sleepingHours)
+    ).toFixed(2);
+  }, [sleepingsLengthByDaysFourWeeks]);
+
+  const averageSleepingsLengthByLastWeek = useMemo(() => {
+    return getAverageFromNumbersArray(
+      sleepingsLengthByDaysFourWeeks.slice(-7).map((day) => +day.sleepingHours)
+    ).toFixed(2);
+  }, [sleepingsLengthByDaysFourWeeks]);
+
+  const averageSleepingsLengthWorkingDaysByFourWeeks = useMemo(() => {
+    return getAverageFromNumbersArray(
+      sleepingsLengthByDaysFourWeeks
+        .filter((day) => {
+          const date = new Date(day.dayStartTimestamp);
+          return date.getDay() > 0 && date.getDay() < 6;
+        })
+        .map((day) => +day.sleepingHours)
+    ).toFixed(2);
+  }, [sleepingsLengthByDaysFourWeeks]);
+
+  const averageSleepingsLengthWorkingDaysLastWeek = useMemo(() => {
+    return getAverageFromNumbersArray(
+      sleepingsLengthByDaysFourWeeks
+        .slice(-7)
+        .filter((day) => {
+          const date = new Date(day.dayStartTimestamp);
+          return date.getDay() > 0 && date.getDay() < 6;
+        })
+        .map((day) => +day.sleepingHours)
+    ).toFixed(2);
+  }, [sleepingsLengthByDaysFourWeeks]);
+
+  const averageSleepingsLengthRestDaysByFourWeeks = useMemo(() => {
+    return getAverageFromNumbersArray(
+      sleepingsLengthByDaysFourWeeks
+        .filter((day) => {
+          const date = new Date(day.dayStartTimestamp);
+          return date.getDay() === 0 || date.getDay() === 6;
+        })
+        .map((day) => +day.sleepingHours)
+    ).toFixed(2);
+  }, [sleepingsLengthByDaysFourWeeks]);
+
+  const averageSleepingsLengthRestDaysLastWeek = useMemo(() => {
+    return getAverageFromNumbersArray(
+      sleepingsLengthByDaysFourWeeks
+        .slice(-7)
+        .filter((day) => {
+          const date = new Date(day.dayStartTimestamp);
+          return date.getDay() === 0 || date.getDay() === 6;
+        })
+        .map((day) => +day.sleepingHours)
+    ).toFixed(2);
+  }, [sleepingsLengthByDaysFourWeeks]);
+
+  const { register, control, reset, handleSubmit, watch, setValue } = useForm({
     defaultValues: {
-      startDatetimeLocal:
-        isLastSleepingStartTimestamp && !isLastSleepingFinishTimestamp
-          ? convertTimestampToDatetimeLocal(lastSleeping.startTimestamp)
-          : "",
+      startDatetimeLocal: "",
       finishDatetimeLocal: "",
     },
   });
+
+  useEffect(() => {
+    if (isLastSleepingStartTimestamp && !isLastSleepingFinishTimestamp) {
+      setValue(
+        "startDatetimeLocal",
+        convertTimestampToDatetimeLocal(lastSleeping.startTimestamp)
+      );
+    }
+  }, [isLastSleepingStartTimestamp, isLastSleepingFinishTimestamp]);
 
   const form = watch();
 
   const onSubmit = (formData) => {
     const requestBody = {};
-    if (formData.startDatetimeLocal) {
+    if (
+      formData.startDatetimeLocal &&
+      !(isLastSleepingStartTimestamp && !isLastSleepingFinishTimestamp)
+    ) {
       requestBody.startDatetimeLocal = formData.startDatetimeLocal;
     }
     if (formData.finishDatetimeLocal) {
@@ -162,37 +241,66 @@ const SleepingRoute = ({ sleepingsByDays, onSetSleeping, className }) => {
           {lastSleeping.finishTimestamp &&
             `, finish: ${convertTimestampToDMYHMS(lastSleeping.finishTimestamp)}`}
         </div>
+        <div>
+          Средняя продолжительность сна за 4 недели:{" "}
+          <b>{averageSleepingsLengthByFourWeeks}</b>
+        </div>
+        <div>
+          Средняя продолжительность сна последние 7 дней:{" "}
+          <b>{averageSleepingsLengthByLastWeek}</b>
+        </div>
+        <div>
+          Средняя продолжительность сна в рабочие дни за 4 недели:{" "}
+          <b>{averageSleepingsLengthWorkingDaysByFourWeeks}</b>
+        </div>
+        <div>
+          Средняя продолжительность сна в рабочие дни за последние 7 дней:{" "}
+          <b>{averageSleepingsLengthWorkingDaysLastWeek}</b>
+        </div>
+        <div>
+          Средняя продолжительность сна в выходные дни за 4 недели:{" "}
+          <b>{averageSleepingsLengthRestDaysByFourWeeks}</b>
+        </div>
+        <div>
+          Средняя продолжительность сна в выходные дни за последние 7 дней:{" "}
+          <b>{averageSleepingsLengthRestDaysLastWeek}</b>
+        </div>
       </Alert>
       <form className="mb-3" onSubmit={handleSubmit(onSubmit)}>
         <div className="d-flex gap-2">
-          <Button
-            disabled={
-              isLastSleepingStartTimestamp && !isLastSleepingFinishTimestamp
-            }
-            onClick={() => {
-              console.log("Лечь спать");
-              onSetSleeping({
-                startDatetimeLocal: convertTimestampToDatetimeLocal(Date.now()),
-              });
-              reset();
-              console.log(convertTimestampToDatetimeLocal(Date.now()));
-            }}
-          >
-            Лечь спать
-          </Button>
-          <Button
-            onClick={() => {
-              console.log("Проснуться");
-              onSetSleeping({
-                finishDatetimeLocal: convertTimestampToDatetimeLocal(
-                  Date.now()
-                ),
-              });
-              reset();
-            }}
-          >
-            Проснуться
-          </Button>
+          {!(
+            isLastSleepingStartTimestamp && !isLastSleepingFinishTimestamp
+          ) && (
+            <Button
+              onClick={() => {
+                console.log("Лечь спать");
+                onSetSleeping({
+                  startDatetimeLocal: convertTimestampToDatetimeLocal(
+                    Date.now()
+                  ),
+                });
+                reset();
+                console.log(convertTimestampToDatetimeLocal(Date.now()));
+              }}
+            >
+              Лечь спать
+            </Button>
+          )}
+          {isLastSleepingStartTimestamp && !isLastSleepingFinishTimestamp && (
+            <Button
+              onClick={() => {
+                console.log("Проснуться");
+                onSetSleeping({
+                  finishDatetimeLocal: convertTimestampToDatetimeLocal(
+                    Date.now()
+                  ),
+                });
+                reset();
+              }}
+            >
+              Проснуться
+            </Button>
+          )}
           <Button
             className="button-square"
             icon="more_horiz"
@@ -203,7 +311,7 @@ const SleepingRoute = ({ sleepingsByDays, onSetSleeping, className }) => {
         </div>
         {showForm && (
           <>
-            <div className="d-flex">
+            <div className="d-flex gap-2">
               <Input
                 label="Начало"
                 id="sleepingStartDatetime"
@@ -265,18 +373,24 @@ const SleepingRoute = ({ sleepingsByDays, onSetSleeping, className }) => {
         )}
       </form>
 
-      {sleepingsLengthByDaysFromYesterday?.length && (
+      {sleepingsLengthByDaysFourWeeks?.length && (
         <Bar
           data={{
-            labels: sleepingsLengthByDaysFromYesterday.map((day) => {
+            labels: sleepingsLengthByDaysFourWeeks.map((day) => {
               return day.date;
             }),
             datasets: [
               {
-                data: sleepingsLengthByDaysFromYesterday.map(
+                data: sleepingsLengthByDaysFourWeeks.map(
                   (day) => day.sleepingHours
                 ),
-                backgroundColor: "hsl(0, 0%, 50%)",
+                backgroundColor: sleepingsLengthByDaysFourWeeks.map((day) => {
+                  if (day.sleepingHours < 8) {
+                    return "hsl(0, 100%, 50%)";
+                  } else {
+                    return "hsl(0, 0%, 50%)";
+                  }
+                }),
               },
             ],
           }}
