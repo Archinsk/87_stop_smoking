@@ -48,25 +48,33 @@ const SleepingRoute = ({ sleepingsByDays, onSetSleeping, className }) => {
   }, [sleepingsByDays]);
 
   const lastSleepingDay = useMemo(() => {
-    return sleepingsByDaysNotEmptyDays[sleepingsByDaysNotEmptyDays.length - 1];
+    if (sleepingsByDaysNotEmptyDays.length > 0) {
+      return sleepingsByDaysNotEmptyDays[
+        sleepingsByDaysNotEmptyDays.length - 1
+      ];
+    }
   }, [sleepingsByDaysNotEmptyDays]);
 
   const lastSleeping = useMemo(() => {
-    return lastSleepingDay.events[lastSleepingDay.events.length - 1];
+    if (lastSleepingDay) {
+      return lastSleepingDay.events[lastSleepingDay.events.length - 1];
+    }
   }, [lastSleepingDay]);
 
   const isLastSleepingStartTimestamp = useMemo(() => {
-    return !!lastSleeping.startTimestamp;
+    return !!lastSleeping?.startTimestamp;
   }, [lastSleeping]);
 
   const isLastSleepingFinishTimestamp = useMemo(() => {
-    return !!lastSleeping.finishTimestamp;
+    return !!lastSleeping?.finishTimestamp;
   }, [lastSleeping]);
 
   const isLastDayFinishedSleeping = useMemo(() => {
-    return lastSleepingDay.events.some((event) => {
-      return event.finishTimestamp;
-    });
+    if (lastSleepingDay) {
+      return lastSleepingDay.events.some((event) => {
+        return event.finishTimestamp;
+      });
+    }
   }, [lastSleepingDay]);
 
   const sleepingsByDaysFourWeeks = useMemo(() => {
@@ -235,12 +243,14 @@ const SleepingRoute = ({ sleepingsByDays, onSetSleeping, className }) => {
     <div className={`sleeping-route${className ? " " + className : ""}`}>
       <h2>Сон</h2>
       <Alert className="mb-3">
-        <div>
-          Last sleeping:{" "}
-          {`start: ${convertTimestampToDMYHMS(lastSleeping.startTimestamp)}`}
-          {lastSleeping.finishTimestamp &&
-            `, finish: ${convertTimestampToDMYHMS(lastSleeping.finishTimestamp)}`}
-        </div>
+        {lastSleeping && (
+          <div>
+            Last sleeping:{" "}
+            {`start: ${convertTimestampToDMYHMS(lastSleeping.startTimestamp)}`}
+            {lastSleeping.finishTimestamp &&
+              `, finish: ${convertTimestampToDMYHMS(lastSleeping.finishTimestamp)}`}
+          </div>
+        )}
         <div>
           Средняя продолжительность сна за 4 недели:{" "}
           <b>{averageSleepingsLengthByFourWeeks}</b>

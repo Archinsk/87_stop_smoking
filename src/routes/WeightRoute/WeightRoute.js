@@ -71,7 +71,7 @@ const WeightRoute = ({
         averageWeightsByNotEmptyDays.forEach((day) => {
           totalWeight += day.averageWeight;
         });
-        return totalWeight / checks;
+        return Math.round((totalWeight / checks) * 20) / 20;
       }
     }
   }, [averageWeightsByNotEmptyDays]);

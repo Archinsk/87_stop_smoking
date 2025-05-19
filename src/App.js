@@ -14,7 +14,7 @@ import TestRoute from "./routes/TestRoute/TestRoute";
 function App() {
   const [route, setRoute] = useState("loading-route");
   const defaultGuestRoute = "auth-route";
-  const defaultAuthRoute = "sleeping-route";
+  const defaultAuthRoute = "smoking-route";
   const [authForm, setAuthForm] = useState({ login: "", password: "" });
   const [regForm, setRegForm] = useState({
     login: "",
@@ -51,7 +51,7 @@ function App() {
   const [userDataByWeekday, setUserDataByWeekday] = useState(null);
   const [userWeightsLastDays, setUserWeightsLastDays] = useState(null);
   const [sleepingsByDays, setSleepingsByDays] = useState(null);
-  const sleepingStatsDays = 29;
+  const sleepingStatsDays = 59;
   const [weightsByDays, setWeightsByDays] = useState(null);
   const weightStatsDays = 28;
   //-----------------------------------------------------------------
@@ -375,7 +375,7 @@ function App() {
         });
         await handleGetEvents({
           eventType: "sleeping",
-          days: 29,
+          days: sleepingStatsDays,
         });
         await handleGetWeights({
           days: weightStatsDays,
