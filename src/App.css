@@ -16,6 +16,10 @@
   display: flex;
 }
 
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
 .d-block {
   display: block;
 }

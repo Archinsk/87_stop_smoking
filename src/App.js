@@ -418,17 +418,18 @@ function App() {
     <div className="app">
       {/* <span className="material-icons">smoke_free</span> Stop Smoking
       <Button icon="settings" onClick={() => setShowSettings(!showSettings)} /> */}
-      <div className="navbar d-flex gap-2 mb-3">
+      <div className="navbar d-flex flex-wrap gap-2 mb-3">
         <Button onClick={() => setRoute("smoking-route")}>Smoking</Button>
         <Button onClick={() => setRoute("weight-route")}>Weight</Button>
         <Button onClick={() => setRoute("sleeping-route")}>Sleeping</Button>
         <Button onClick={() => setRoute("auth-route")}>Auth</Button>
         <Button onClick={() => setRoute("request-route")}>Request</Button>
         <Button onClick={() => setRoute("test-route")}>Test</Button>
+        <Alert className="">
+          <div>User name: {user?.name || "empty"}</div>
+        </Alert>
       </div>
-      <Alert className="mb-3">
-        <div>User name: {user?.name || "empty"}</div>
-      </Alert>
+
       {route === "auth-route" && (
         <AuthRoute
           form={authForm}
