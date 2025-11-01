@@ -1,5 +1,40 @@
 :root {
   --cigarette-diameter: 10vw;
+
+  --base-hue: 0;
+  --base-saturation: 0%;
+  --base-lightness: 20%;
+  --base-alpha: 1;
+
+  --base-contrast: 0.25;
+
+  --contrast-lightness: calc(
+    var(--base-lightness) + sign(calc(50% - var(--base-lightness))) *
+      calc(
+        max(var(--base-lightness), calc(100% - var(--base-lightness))) *
+          var(--base-contrast)
+      )
+  );
+
+  --base-color: hsla(
+    var(--base-hue),
+    var(--base-saturation),
+    var(--base-lightness),
+    var(--base-alpha)
+  );
+
+  --contrast-color: hsla(
+    var(--base-hue),
+    var(--base-saturation),
+    var(--contrast-lightness),
+    var(--base-alpha)
+  );
+}
+
+body {
+  background-color: var(--base-color);
+  /* color: red; */
+  color: var(--contrast-color);
 }
 
 @media (width > 1100px) {

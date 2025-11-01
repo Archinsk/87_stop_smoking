@@ -239,6 +239,7 @@ const SmokingRoute = ({
 
   return (
     <div className={`smoking-route${className ? " " + className : ""}`}>
+      <div>Just text in div</div>
       <Alert className="mb-3">
         <div>
           Last smoking: {convertTimestampToDMYHMS(user.lastSmokingDate)}
